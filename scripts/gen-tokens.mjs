@@ -5,7 +5,7 @@
  * exactly one definition of every value and the TS object cannot drift from
  * the stylesheet. Never hand-edit dist/*.css.
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -20,9 +20,16 @@ const tokensCss = HEADER + toCss()
 mkdirSync(DIST, { recursive: true })
 writeFileSync(join(DIST, 'tokens.css'), tokensCss)
 
-// kit.css is the single stylesheet a consumer imports. Today it is only the
-// token block; primitives, overlays, audio and chrome layers append here as
-// they are extracted, in that order, so the cascade stays predictable.
-writeFileSync(join(DIST, 'kit.css'), tokensCss)
+// kit.css is the single stylesheet a consumer imports: the token block, then
+// each layer in extraction order, so the cascade stays predictable. Layers
+// are concatenated rather than @import-ed — an @import must precede all other
+// rules, and it costs a second request in any host that doesn't bundle.
+const LAYERS = ['primitives.css']
+const layers = LAYERS.map((f) => readFileSync(join(ROOT, 'src', 'styles', f), 'utf8'))
+const kitCss = [HEADER, tokensCss.slice(HEADER.length), ...layers].join('\n')
+writeFileSync(join(DIST, 'kit.css'), kitCss)
 
-console.log(`wrote dist/tokens.css and dist/kit.css (${tokensCss.split('\n').length - 1} lines)`)
+console.log(
+  `wrote dist/tokens.css (${tokensCss.split('\n').length - 1} lines) and ` +
+    `dist/kit.css (${kitCss.split('\n').length - 1} lines, layers: ${LAYERS.join(', ')})`
+)
