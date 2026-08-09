@@ -18,3 +18,5 @@ export { StatusDot, LinkButton, Badge } from './primitives/StatusDot.js';
 export { Modal, ModalActions } from './overlays/Modal.js';
 export { useDismissable } from './hooks/useDismissable.js';
 export { useModalLock, modalCoversApp } from './hooks/useModalLock.js';
+export { Waveform } from './audio/Waveform.js';
+export { fitCanvas } from './hooks/useCanvas2D.js';

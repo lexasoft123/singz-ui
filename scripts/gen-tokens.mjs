@@ -24,7 +24,7 @@ writeFileSync(join(DIST, 'tokens.css'), tokensCss)
 // each layer in extraction order, so the cascade stays predictable. Layers
 // are concatenated rather than @import-ed — an @import must precede all other
 // rules, and it costs a second request in any host that doesn't bundle.
-const LAYERS = ['primitives.css', 'overlays.css']
+const LAYERS = ['primitives.css', 'overlays.css', 'audio.css']
 const layers = LAYERS.map((f) => readFileSync(join(ROOT, 'src', 'styles', f), 'utf8'))
 const kitCss = [HEADER, tokensCss.slice(HEADER.length), ...layers].join('\n')
 writeFileSync(join(DIST, 'kit.css'), kitCss)

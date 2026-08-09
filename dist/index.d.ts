@@ -7,3 +7,5 @@ export { StatusDot, LinkButton, Badge, type DotTone, type StatusDotProps, type L
 export { Modal, ModalActions, type ModalProps, type ModalActionsProps } from './overlays/Modal.js';
 export { useDismissable } from './hooks/useDismissable.js';
 export { useModalLock, modalCoversApp } from './hooks/useModalLock.js';
+export { Waveform, type WaveformProps } from './audio/Waveform.js';
+export { fitCanvas } from './hooks/useCanvas2D.js';
