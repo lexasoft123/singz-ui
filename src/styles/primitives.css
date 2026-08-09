@@ -16,6 +16,21 @@
  * Hosts fulfil them; the kit only reads them.
  */
 
+/*
+ * The page's ground, at ZERO specificity.
+ *
+ * The tokens existed from v0.1.0 but nothing ever applied them, so a consumer
+ * importing kit.css got near-white text on a white page — the kit's own demo
+ * had to set this by hand. :where() means any host rule beats it without a
+ * fight: SingZ keeps its own body rule, and a light theme's tokens flow
+ * straight through because these are var() references, not literals.
+ */
+:where(body) {
+  background: var(--sz-bg);
+  color: var(--sz-text);
+  font-family: var(--sz-font-display);
+}
+
 button {
   font-family: var(--sz-font-display);
   color: inherit;
@@ -173,6 +188,19 @@ input:focus-visible {
 .chip:hover {
   border-color: var(--sz-line-strong);
   color: var(--sz-text);
+}
+
+/* Chip's `active` prop set aria-pressed and a class that NOTHING styled, so a
+   pressed chip looked identical to a resting one. The treatment is the DS's
+   own, copied from .mode-seg button.on / .pill.karaoke.active rather than
+   invented. Hosts that colour the pressed state per lane (SingZ fills it with
+   --stem) win on specificity and are unaffected. */
+.chip.active {
+  background: var(--sz-accent-soft);
+  /* Computes to exactly the rgba(255,160,40,.55) the app writes by hand, but
+     derived: a literal here is a border a re-themed consumer cannot move. */
+  border-color: color-mix(in srgb, var(--sz-accent) 55%, transparent);
+  color: var(--sz-accent);
 }
 
 /* ————————————————————————————————— segmented control ————— */

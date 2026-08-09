@@ -1,0 +1,29 @@
+{
+  "projectId": "eff476ba-8196-466d-89a3-7f70b43daae0",
+  "shape": "package",
+  "pkg": "@singz/ui",
+  "globalName": "SingzUI",
+  "buildCmd": "npm run build",
+  "srcDir": "src",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": "dist/kit.css",
+  "tokensGlob": "dist/tokens.css",
+  "readmeHeader": ".design-sync/conventions.md",
+  "overrides": {
+    "Modal": {
+      "cardMode": "single",
+      "viewport": "760x520"
+    },
+    "ModalActions": {
+      "cardMode": "single",
+      "viewport": "760x520"
+    }
+  },
+  "docsMap": {
+    "ModalActions": ".design-sync/docs/ModalActions.md"
+  },
+  "componentSrcMap": {
+    "Badge": "src/primitives/StatusDot.tsx",
+    "LinkButton": "src/primitives/StatusDot.tsx"
+  }
+}
