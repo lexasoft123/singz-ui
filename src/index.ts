@@ -27,3 +27,6 @@ export {
   type LinkButtonProps,
   type BadgeProps
 } from './primitives/StatusDot.js'
+export { Modal, ModalActions, type ModalProps, type ModalActionsProps } from './overlays/Modal.js'
+export { useDismissable } from './hooks/useDismissable.js'
+export { useModalLock, modalCoversApp } from './hooks/useModalLock.js'

@@ -1,0 +1,82 @@
+/* ——————————————————————————— night-studio · overlays ————— */
+
+/*
+ * Moved verbatim from SingZ's styles.css. Values unchanged.
+ *
+ * The three keyframes below are defined here but still USED by host rules
+ * (SingZ animates .drop-overlay and .pitch-strip with `fade`, .drop-inner and
+ * .lib with `rise`). Keyframes are global and resolve by name regardless of
+ * which stylesheet defines them, so the host keeps working with no change.
+ *
+ * The host owns the PAUSE policy. SingZ freezes infinite animations behind a
+ * modal via `body.modal-open`, because every invalidated pixel under a
+ * backdrop-filter scrim forces a full-window recomposite — a weak Intel iGPU
+ * hit ~95% GPU on exactly that. The kit does not impose this; it just must
+ * not get in the way of it.
+ */
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(8, 6, 3, 0.62);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  animation: fade 0.18s;
+}
+
+.modal-card {
+  width: min(480px, calc(100vw - 60px));
+  background: var(--sz-surface-raised);
+  border: 1px solid var(--sz-line-strong);
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  animation: rise 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.toast {
+  position: fixed;
+  bottom: 104px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: 72%;
+  background: #2b1c13;
+  border: 1px solid rgba(255, 122, 92, 0.45);
+  color: #ffb9a6;
+  padding: 11px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: toast-in 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}

@@ -36,6 +36,10 @@ export const tokens = {
   /** Text ON an accent fill — dark enough to read against #ffa028. */
   'accent-ink': '#241705',
 
+  /** A surface that floats ABOVE the app — modal cards, popovers. Lighter
+   *  than --panel because it sits over a darkened, blurred scrim. */
+  'surface-raised': '#1e1a15',
+
   // status
   danger: '#ff7a5c',
   success: '#58d68a',

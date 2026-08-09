@@ -13,6 +13,9 @@ export declare const tokens: {
     readonly 'accent-soft': "rgba(255, 160, 40, 0.13)";
     /** Text ON an accent fill — dark enough to read against #ffa028. */
     readonly 'accent-ink': "#241705";
+    /** A surface that floats ABOVE the app — modal cards, popovers. Lighter
+     *  than --panel because it sits over a darkened, blurred scrim. */
+    readonly 'surface-raised': "#1e1a15";
     readonly danger: "#ff7a5c";
     readonly success: "#58d68a";
     readonly 'font-display': "system-ui, sans-serif";
