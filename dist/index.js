@@ -21,3 +21,4 @@ export { useModalLock, modalCoversApp } from './hooks/useModalLock.js';
 export { Waveform } from './audio/Waveform.js';
 export { fitCanvas } from './hooks/useCanvas2D.js';
 export { WindowButtons, applyPlatformClasses } from './chrome/WindowButtons.js';
+export { STEM_META, CUSTOM_COLORS, STEM_ORDER } from './tokens/stems.js';
