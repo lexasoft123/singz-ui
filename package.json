@@ -1,0 +1,34 @@
+{
+  "name": "@singz/ui",
+  "version": "0.1.0",
+  "description": "The night-studio design language — tokens and React components shared across SingZ and friends.",
+  "author": "lexasoft <lexasoft@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "repository": { "type": "git", "url": "git+https://github.com/lexasoft123/singz-ui.git" },
+  "files": ["dist"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./tokens": { "types": "./dist/tokens/tokens.d.ts", "import": "./dist/tokens/tokens.js" },
+    "./kit.css": "./dist/kit.css",
+    "./tokens.css": "./dist/tokens.css"
+  },
+  "sideEffects": ["*.css"],
+  "scripts": {
+    "gen": "node scripts/gen-tokens.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/gen-tokens.mjs",
+    "check": "node scripts/check-dist.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "react": "^18.3 || ^19",
+    "react-dom": "^18.3 || ^19"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
