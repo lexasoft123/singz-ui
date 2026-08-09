@@ -15,6 +15,12 @@
   --sz-surface-raised: #1e1a15;
   --sz-danger: #ff7a5c;
   --sz-success: #58d68a;
+  --sz-danger-strong: #ff8a7a;
+  --sz-danger-strong-line: rgba(255, 138, 122, 0.4);
+  --sz-danger-strong-wash: rgba(255, 138, 122, 0.12);
+  --sz-danger-surface: #2b1c13;
+  --sz-danger-surface-text: #ffb9a6;
+  --sz-danger-surface-line: rgba(255, 122, 92, 0.45);
   --sz-font-display: system-ui, sans-serif;
   --sz-font-mono: ui-monospace, 'SF Mono', monospace;
 }

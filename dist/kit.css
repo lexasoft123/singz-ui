@@ -16,6 +16,12 @@
   --sz-surface-raised: #1e1a15;
   --sz-danger: #ff7a5c;
   --sz-success: #58d68a;
+  --sz-danger-strong: #ff8a7a;
+  --sz-danger-strong-line: rgba(255, 138, 122, 0.4);
+  --sz-danger-strong-wash: rgba(255, 138, 122, 0.12);
+  --sz-danger-surface: #2b1c13;
+  --sz-danger-surface-text: #ffb9a6;
+  --sz-danger-surface-line: rgba(255, 122, 92, 0.45);
   --sz-font-display: system-ui, sans-serif;
   --sz-font-mono: ui-monospace, 'SF Mono', monospace;
 }
@@ -146,13 +152,13 @@ input:focus-visible {
 
 /* Sets border-COLOR only: it rides on the border .ghost already drew. */
 .pill.danger {
-  color: #ff8a7a;
-  border-color: rgba(255, 138, 122, 0.4);
+  color: var(--sz-danger-strong);
+  border-color: var(--sz-danger-strong-line);
 }
 
 .pill.danger:hover:not(:disabled) {
-  background: rgba(255, 138, 122, 0.12);
-  border-color: #ff8a7a;
+  background: var(--sz-danger-strong-wash);
+  border-color: var(--sz-danger-strong);
 }
 
 /* A round icon button. Hosts add their own state modifier alongside. */
@@ -323,9 +329,9 @@ input:focus-visible {
   transform: translateX(-50%);
   z-index: 60;
   max-width: 72%;
-  background: #2b1c13;
-  border: 1px solid rgba(255, 122, 92, 0.45);
-  color: #ffb9a6;
+  background: var(--sz-danger-surface);
+  border: 1px solid var(--sz-danger-surface-line);
+  color: var(--sz-danger-surface-text);
   padding: 11px 18px;
   border-radius: 12px;
   font-size: 13px;

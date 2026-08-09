@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>@singz/ui — night studio</title>
+    <link rel="stylesheet" href="../dist/kit.css" />
+    <style>
+      /* Gallery chrome only — nothing here is part of the kit. */
+      body {
+        background: var(--sz-bg);
+        color: var(--sz-text);
+        font-family: var(--sz-font-display);
+        margin: 0;
+        padding: 32px 40px 80px;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--sz-faint);
+        margin: 36px 0 12px;
+        font-weight: 700;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .sub {
+        color: var(--sz-dim);
+        font-size: 13px;
+        margin: 0 0 8px;
+      }
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      .sw {
+        border: 1px solid var(--sz-line);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 11px;
+        font-family: var(--sz-font-mono);
+        color: var(--sz-dim);
+      }
+      .sw i {
+        display: block;
+        height: 26px;
+        border-radius: 5px;
+        margin-bottom: 6px;
+        border: 1px solid var(--sz-line);
+      }
+      .themer {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        z-index: 5;
+      }
+      /*
+       * ChordZ's light "atelier" palette. This is the acceptance test for the
+       * token set: if anything stays dark when this is applied, some colour is
+       * still hardcoded and no other app can use the kit.
+       */
+      body.atelier {
+        --sz-bg: #f6f0e4;
+        --sz-panel: #f1ead8;
+        --sz-panel-deep: #eee6d2;
+        --sz-surface-raised: #fbf6eb;
+        --sz-line: rgba(31, 26, 18, 0.14);
+        --sz-line-strong: rgba(31, 26, 18, 0.28);
+        --sz-text: #1f1a12;
+        --sz-dim: #594a33;
+        --sz-faint: #8e7f66;
+        --sz-accent: #b5491c;
+        --sz-accent-deep: #983d16;
+        --sz-accent-soft: rgba(181, 73, 28, 0.13);
+        --sz-accent-ink: #fff6ec;
+        --sz-danger: #b03a2e;
+      --sz-danger-strong: #8f2d22;
+      --sz-danger-strong-line: rgba(143, 45, 34, 0.4);
+      --sz-danger-strong-wash: rgba(143, 45, 34, 0.12);
+        --sz-danger-surface: #f7e2dc;
+        --sz-danger-surface-text: #7a2a1e;
+        --sz-danger-surface-line: rgba(176, 58, 46, 0.4);
+        --sz-success: #2f7d4f;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="pill ghost small themer" onclick="document.body.classList.toggle('atelier')">
+      Toggle atelier theme
+    </button>
+
+    <h1>@singz/ui</h1>
+    <p class="sub">
+      The night-studio design language. Toggle the theme — everything below must follow.
+    </p>
+
+    <h2>Buttons</h2>
+    <div class="row">
+      <button class="pill ghost">Ghost</button>
+      <button class="pill primary">Primary</button>
+      <button class="pill ghost danger">Danger</button>
+      <button class="pill ghost small">Small</button>
+      <button class="pill ghost small" disabled>Disabled</button>
+      <button class="round-ghost">◼</button>
+    </div>
+
+    <h2>Chips, dots, badges</h2>
+    <div class="row">
+      <button class="chip">M</button>
+      <button class="chip active">S</button>
+      <span class="badge">synced</span>
+      <span class="dot ok"></span>
+      <span class="dot idle"></span>
+      <span class="dot warn"></span>
+      <button class="linkish">A text button</button>
+    </div>
+
+    <h2>Segmented control</h2>
+    <div class="row">
+      <div class="mode-seg">
+        <button class="on">Off</button>
+        <button>Show</button>
+      </div>
+      <div class="mode-seg">
+        <button>2</button>
+        <button class="on">4</button>
+        <button>6</button>
+        <button disabled>8</button>
+      </div>
+    </div>
+
+    <h2>Toast</h2>
+    <div class="row" style="position: relative; height: 60px">
+      <div class="toast" style="position: static; transform: none">
+        Could not decode that audio file.
+      </div>
+    </div>
+
+    <h2>Tokens</h2>
+    <div class="swatches" id="sw"></div>
+
+    <script type="module">
+      import { tokens } from '../dist/tokens/tokens.js'
+      import { STEM_META } from '../dist/tokens/stems.js'
+      const el = document.getElementById('sw')
+      const add = (name, value, varName) => {
+        const d = document.createElement('div')
+        d.className = 'sw'
+        d.innerHTML = `<i style="background:${varName ? `var(${varName})` : value}"></i>${name}`
+        el.appendChild(d)
+      }
+      for (const k of Object.keys(tokens)) {
+        if (k.startsWith('font-')) continue
+        add(`--sz-${k}`, tokens[k], `--sz-${k}`)
+      }
+      for (const [k, m] of Object.entries(STEM_META)) add(`stem ${k}`, m.color)
+    </script>
+  </body>
+</html>

@@ -18,6 +18,16 @@ export declare const tokens: {
     readonly 'surface-raised': "#1e1a15";
     readonly danger: "#ff7a5c";
     readonly success: "#58d68a";
+    /** Danger as FOREGROUND — a button's text and border, which needs more
+     *  lift than --sz-danger has against a dark ground. */
+    readonly 'danger-strong': "#ff8a7a";
+    readonly 'danger-strong-line': "rgba(255, 138, 122, 0.4)";
+    readonly 'danger-strong-wash': "rgba(255, 138, 122, 0.12)";
+    /** A danger-tinted raised surface and its text — the toast. Separate
+     *  tokens because a light theme needs a light tint here, not a dark one. */
+    readonly 'danger-surface': "#2b1c13";
+    readonly 'danger-surface-text': "#ffb9a6";
+    readonly 'danger-surface-line': "rgba(255, 122, 92, 0.45)";
     readonly 'font-display': "system-ui, sans-serif";
     readonly 'font-mono': "ui-monospace, 'SF Mono', monospace";
 };

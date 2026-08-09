@@ -70,9 +70,9 @@
   transform: translateX(-50%);
   z-index: 60;
   max-width: 72%;
-  background: #2b1c13;
-  border: 1px solid rgba(255, 122, 92, 0.45);
-  color: #ffb9a6;
+  background: var(--sz-danger-surface);
+  border: 1px solid var(--sz-danger-surface-line);
+  color: var(--sz-danger-surface-text);
   padding: 11px 18px;
   border-radius: 12px;
   font-size: 13px;

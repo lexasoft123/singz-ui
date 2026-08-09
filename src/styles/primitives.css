@@ -124,13 +124,13 @@ input:focus-visible {
 
 /* Sets border-COLOR only: it rides on the border .ghost already drew. */
 .pill.danger {
-  color: #ff8a7a;
-  border-color: rgba(255, 138, 122, 0.4);
+  color: var(--sz-danger-strong);
+  border-color: var(--sz-danger-strong-line);
 }
 
 .pill.danger:hover:not(:disabled) {
-  background: rgba(255, 138, 122, 0.12);
-  border-color: #ff8a7a;
+  background: var(--sz-danger-strong-wash);
+  border-color: var(--sz-danger-strong);
 }
 
 /* A round icon button. Hosts add their own state modifier alongside. */

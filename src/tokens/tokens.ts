@@ -44,6 +44,18 @@ export const tokens = {
   danger: '#ff7a5c',
   success: '#58d68a',
 
+  /** Danger as FOREGROUND — a button's text and border, which needs more
+   *  lift than --sz-danger has against a dark ground. */
+  'danger-strong': '#ff8a7a',
+  'danger-strong-line': 'rgba(255, 138, 122, 0.4)',
+  'danger-strong-wash': 'rgba(255, 138, 122, 0.12)',
+
+  /** A danger-tinted raised surface and its text — the toast. Separate
+   *  tokens because a light theme needs a light tint here, not a dark one. */
+  'danger-surface': '#2b1c13',
+  'danger-surface-text': '#ffb9a6',
+  'danger-surface-line': 'rgba(255, 122, 92, 0.45)',
+
   // type. The kit declares the variables but ships no fonts: the two
   // @fontsource-variable packages belong to the app, and a duplicate
   // @font-face set would double the woff2 in every consumer's bundle.
