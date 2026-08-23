@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { fitCanvas } from '../hooks/useCanvas2D.js';
 /** Below this many visible envelope buckets, draw from raw samples instead. */
 const RAW_THRESHOLD_BUCKETS = 600;
-function drawWave(canvas, peaks, buffer, scale, color, viewStart, viewEnd) {
+function drawWave(canvas, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors) {
     const fit = fitCanvas(canvas);
     if (!fit)
         return;
@@ -58,19 +58,35 @@ function drawWave(canvas, peaks, buffer, scale, color, viewStart, viewEnd) {
         }
         return;
     }
-    // Overview: envelope buckets, mirrored around the midline.
+    // Overview: envelope buckets, mirrored around the midline. With
+    // `bucketColors` each pixel takes the colour of its loudest bucket — the
+    // phone's stem-hued seek bar pattern (each bucket in the loudest lane's
+    // hue, so the bar says who is leading). Colour changes are batched: setting
+    // fillStyle per pixel would thrash the canvas state for nothing on the
+    // long single-hue runs real songs are made of.
+    let lastFill = null;
     for (let x = 0; x < w; x++) {
         const f0 = viewStart + (x / w) * span;
         const f1 = viewStart + ((x + 1) / w) * span;
         const b0 = Math.max(0, Math.floor(f0 * n));
         const b1 = Math.min(n, Math.max(b0 + 1, Math.ceil(f1 * n)));
         let peak = 0;
+        let peakB = b0;
         // `as number`, not a guard: b0..b1 are clamped to peaks.length above, so
         // the read is always in range, and this is a per-pixel inner loop.
         for (let b = b0; b < b1; b++) {
             const v = peaks[b];
-            if (v > peak)
+            if (v > peak) {
                 peak = v;
+                peakB = b;
+            }
+        }
+        if (bucketColors) {
+            const c = bucketColors[peakB] ?? color;
+            if (c !== lastFill) {
+                ctx.fillStyle = c;
+                lastFill = c;
+            }
         }
         const half = Math.max(0.75, peak * amp);
         ctx.fillRect(x, mid - half, 0.8, half * 2);
@@ -82,22 +98,22 @@ function drawWave(canvas, peaks, buffer, scale, color, viewStart, viewEnd) {
  * playhead loop writes once per frame. Progress therefore costs no canvas
  * redraws at all — see audio.css for that contract.
  */
-export function Waveform({ peaks, buffer, scale, color, viewStart, viewEnd }) {
+export function Waveform({ peaks, buffer, scale, color, viewStart, viewEnd, bucketColors }) {
     const baseRef = useRef(null);
     const brightRef = useRef(null);
     const wrapRef = useRef(null);
     useLayoutEffect(() => {
         const redraw = () => {
             if (baseRef.current)
-                drawWave(baseRef.current, peaks, buffer, scale, color, viewStart, viewEnd);
+                drawWave(baseRef.current, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors);
             if (brightRef.current)
-                drawWave(brightRef.current, peaks, buffer, scale, color, viewStart, viewEnd);
+                drawWave(brightRef.current, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors);
         };
         redraw();
         const ro = new ResizeObserver(redraw);
         if (wrapRef.current)
             ro.observe(wrapRef.current);
         return () => ro.disconnect();
-    }, [peaks, buffer, scale, color, viewStart, viewEnd]);
+    }, [peaks, buffer, scale, color, viewStart, viewEnd, bucketColors]);
     return (_jsxs("div", { className: "wave", ref: wrapRef, children: [_jsx("canvas", { ref: baseRef, className: "wave-base" }), _jsx("canvas", { ref: brightRef, className: "wave-bright" })] }));
 }
