@@ -115,9 +115,11 @@ the file is quietly wrong.
 
 `glass.js` is deliberately plain ESM rather than part of the package build:
 it is loaded by a `<script type="module">` in whatever window is rendering, and
-that has to work without a bundler. If you would rather `import { paint } from
-'@singz/ui/icon'`, promoting it into `src/` is a small change — it has no React
-dependency and no imports of its own.
+that has to work without a bundler. The same drawing kit is also packaged as
+`src/icon/glass.ts`, so a host with a build step can
+`import { paint } from '@singz/ui/icon'` instead of copying the file — the two
+copies are kept identical by hand, since the packaged one is typed and this
+one has to stay import-free.
 
 ## Shipping it
 

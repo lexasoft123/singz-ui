@@ -25,6 +25,7 @@ import { STEM_META } from '@singz/ui/stems'
 | audio | `Waveform`, `fitCanvas` |
 | chrome | `WindowButtons`, `applyPlatformClasses`, frameless-window CSS |
 | native | React Native glass surfaces, navigation, settings, pitch feedback and training controls |
+| icon | `paint`, the liquid-glass app-icon recipe as a plain function — see [`recipes/app-icon`](recipes/app-icon) |
 
 ## The class names are the contract
 
