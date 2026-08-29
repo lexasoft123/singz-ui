@@ -1,0 +1,80 @@
+<meta charset="utf-8" /><title>icon forge</title>
+<body style="margin:0;background:#0d0c0a;display:grid;place-items:center;min-height:100vh">
+<script type="module">
+/*
+ * A worked example. Copy this file into your app, replace `full` and `small`,
+ * and leave everything else alone — the tile, the light and the glass are the
+ * language, and they are what make two apps look related.
+ *
+ * The mark here is a signal chain across a grid, spiking. Yours should come
+ * out of what the app actually is: the thing on screen the user would point
+ * at. Generic audio symbols (a waveform, a note, a knob) are what every other
+ * app in the folder already used.
+ */
+import { paint, lit, bore, AMBER } from './glass.js'
+
+/** An empty cell. Dim enough to be context, not content. */
+function slot(ctx, x, y, w, h, r) {
+  ctx.fillStyle = 'rgba(255,178,90,.055)'
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill()
+  ctx.strokeStyle = 'rgba(255,178,90,.20)'
+  ctx.lineWidth = w * 0.085
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.stroke()
+}
+
+/* [column, row] on a 4-row grid. Steep on purpose: a gradual descent turns a
+   spike into a mountain chart, which reads as a stock ticker. */
+const SPIKE = [[0, 2], [1, 2], [2, 0], [3, 3], [4, 2], [5, 2]]
+const COLS = 6, ROWS = 4
+
+function chain(ctx, pad, size, { bare }) {
+  const gw = size * 0.74, gap = size * 0.028
+  const w = (gw - gap * (COLS - 1)) / COLS, h = w
+  const gh = h * ROWS + gap * (ROWS - 1)
+  const x0 = pad + (size - gw) / 2, y0 = pad + (size - gh) / 2, r = w * 0.26
+  const X = (c) => x0 + c * (w + gap), Y = (rw) => y0 + rw * (h + gap)
+
+  if (!bare) for (let rw = 0; rw < ROWS; rw++) for (let c = 0; c < COLS; c++) slot(ctx, X(c), Y(rw), w, h, r)
+
+  lit(ctx, size, (c) => {
+    SPIKE.forEach((b, i) => {
+      const px = X(b[0]) + w / 2, py = Y(b[1]) + h / 2
+      i ? c.lineTo(px, py) : c.moveTo(px, py)
+    })
+  }, { w: bare ? 0.115 : 0.052 })
+
+  if (!bare) lit(ctx, size, (c) => {
+    SPIKE.forEach((b) => c.roundRect(X(b[0]), Y(b[1]), w, h, r))
+  }, { fill: true })
+}
+
+const MARKS = {
+  full:  (ctx, pad, size) => chain(ctx, pad, size, { bare: false }),
+  /* At 16 and 32 the slot field can only turn to mush, so the chain carries
+     alone, fattened. Same shape, same light — the same app. */
+  small: (ctx, pad, size) => chain(ctx, pad, size, { bare: true })
+}
+
+function render(S, variant = 'full') {
+  const c = document.createElement('canvas')
+  c.width = c.height = S
+  paint(c.getContext('2d'), S, MARKS[variant])
+  return c
+}
+
+/** The contract cut-icons.cjs calls. */
+window.drawIcon = (S, variant) => render(S, variant).toDataURL('image/png')
+
+/* A contact sheet while you iterate — the small sizes are the ones that tell
+   you whether the mark works, so look at them, not at the 512. */
+const sheet = document.createElement('div')
+sheet.style.cssText = 'display:flex;gap:22px;align-items:flex-end;padding:40px'
+for (const S of [256, 128, 64, 48, 32, 16]) {
+  const big = render(1024, S <= 32 ? 'small' : 'full')
+  const c = document.createElement('canvas')
+  c.width = c.height = S
+  c.getContext('2d').drawImage(big, 0, 0, S, S)
+  sheet.appendChild(c)
+}
+document.body.appendChild(sheet)
+</script>
