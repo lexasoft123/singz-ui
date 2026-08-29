@@ -3,6 +3,14 @@ export declare const tokens: {
     readonly bg: "#12100d";
     readonly panel: "#1b1814";
     readonly 'panel-deep': "#0f0d0a";
+    readonly 'glass-fill': "rgba(24, 20, 17, 0.55)";
+    readonly 'glass-line': "rgba(255, 240, 220, 0.05)";
+    readonly 'glass-rim': "rgba(255, 240, 220, 0.14)";
+    readonly 'control-fill': "rgba(24, 20, 17, 0.46)";
+    readonly 'control-line': "rgba(255, 240, 220, 0.10)";
+    readonly 'control-rim': "rgba(255, 240, 220, 0.18)";
+    readonly 'footer-fill': "rgba(12, 10, 8, 0.96)";
+    readonly shadow: "#000000";
     readonly line: "rgba(255, 240, 214, 0.08)";
     readonly 'line-strong': "rgba(255, 240, 214, 0.2)";
     readonly text: "#f4efe6";

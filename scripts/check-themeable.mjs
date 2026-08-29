@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const STYLES = join(ROOT, 'src', 'styles')
+const NATIVE = join(ROOT, 'src', 'native')
 
 const ALLOWED = new Map([
   ['#fff', 'text on the Windows close button, which is always red'],
@@ -42,8 +43,12 @@ const COLOUR = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)/g
 
 let bad = 0
 let allowed = 0
-for (const f of readdirSync(STYLES).filter((x) => x.endsWith('.css'))) {
-  const src = readFileSync(join(STYLES, f), 'utf8')
+const inputs = [
+  ...readdirSync(STYLES).filter((file) => file.endsWith('.css')).map((file) => ({ file: join(STYLES, file), label: file })),
+  ...readdirSync(NATIVE).filter((file) => /\.tsx?$/.test(file)).map((file) => ({ file: join(NATIVE, file), label: `native/${file}` }))
+]
+for (const input of inputs) {
+  const src = readFileSync(input.file, 'utf8')
   src.split('\n').forEach((line, i) => {
     if (line.trim().startsWith('*') || line.trim().startsWith('/*')) return
     for (const m of line.match(COLOUR) ?? []) {
@@ -52,13 +57,13 @@ for (const f of readdirSync(STYLES).filter((x) => x.endsWith('.css'))) {
         continue
       }
       bad += 1
-      console.log(`${f}:${i + 1}  ${m}`)
+      console.log(`${input.label}:${i + 1}  ${m}`)
     }
   })
 }
 
 console.log(
-  `\n${bad} un-tokenised colour${bad === 1 ? '' : 's'} outside tokens.css ` +
+  `\n${bad} un-tokenised colour${bad === 1 ? '' : 's'} outside the token source ` +
     `(${allowed} allowed by name)`
 )
 if (bad > 0) {

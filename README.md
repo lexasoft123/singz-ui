@@ -24,6 +24,7 @@ import { STEM_META } from '@singz/ui/stems'
 | overlays | `Modal` `ModalActions`, toast, `useDismissable`, `useModalLock` |
 | audio | `Waveform`, `fitCanvas` |
 | chrome | `WindowButtons`, `applyPlatformClasses`, frameless-window CSS |
+| native | React Native glass surfaces, navigation, settings, pitch feedback and training controls |
 
 ## The class names are the contract
 
@@ -37,7 +38,7 @@ that and doubled a 374-rule stylesheet to do it.
 Every component appends whatever `className` you pass, so host-specific hooks
 ride on top.
 
-## Two entry points, on purpose
+## Platform entry points, on purpose
 
 CSS custom properties are the natural fit on the web, but React Native cannot
 read them — and the phone was exactly the consumer that drifted first: eleven
@@ -45,6 +46,22 @@ tokens, eleven mismatches, an accent of `#f2c14e` against the real `#ffa028`.
 So `tokens.ts` is the source of truth, `tokens.css` is generated from it, and
 both `tokens.ts` and `stems.ts` have **zero imports** so anything can read
 them — Vite, Metro, vitest, jest, plain node.
+
+Web components remain on `@singz/ui`; React Native components live on the
+separate `@singz/ui/native` entry so Metro never traverses React DOM code:
+
+```tsx
+import {
+  GlassHeader,
+  PitchMeter,
+  ReferenceControls,
+  nightStudioNativeTheme
+} from '@singz/ui/native'
+```
+
+The native theme is derived entirely from the same `tokens.ts` object that
+generates the web custom properties. Apps may wrap a subtree in
+`NativeThemeProvider`; without a provider, components use night-studio.
 
 ## Theming
 

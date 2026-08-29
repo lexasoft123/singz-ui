@@ -4,6 +4,14 @@
   --sz-bg: #12100d;
   --sz-panel: #1b1814;
   --sz-panel-deep: #0f0d0a;
+  --sz-glass-fill: rgba(24, 20, 17, 0.55);
+  --sz-glass-line: rgba(255, 240, 220, 0.05);
+  --sz-glass-rim: rgba(255, 240, 220, 0.14);
+  --sz-control-fill: rgba(24, 20, 17, 0.46);
+  --sz-control-line: rgba(255, 240, 220, 0.10);
+  --sz-control-rim: rgba(255, 240, 220, 0.18);
+  --sz-footer-fill: rgba(12, 10, 8, 0.96);
+  --sz-shadow: #000000;
   --sz-line: rgba(255, 240, 214, 0.08);
   --sz-line-strong: rgba(255, 240, 214, 0.2);
   --sz-text: #f4efe6;

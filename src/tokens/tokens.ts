@@ -20,6 +20,18 @@ export const tokens = {
   panel: '#1b1814',
   'panel-deep': '#0f0d0a',
 
+  // translucent native surfaces. These are semantic design-system values,
+  // not component implementation details: Player, Training and navigation
+  // all use the same material recipe.
+  'glass-fill': 'rgba(24, 20, 17, 0.55)',
+  'glass-line': 'rgba(255, 240, 220, 0.05)',
+  'glass-rim': 'rgba(255, 240, 220, 0.14)',
+  'control-fill': 'rgba(24, 20, 17, 0.46)',
+  'control-line': 'rgba(255, 240, 220, 0.10)',
+  'control-rim': 'rgba(255, 240, 220, 0.18)',
+  'footer-fill': 'rgba(12, 10, 8, 0.96)',
+  shadow: '#000000',
+
   // hairlines
   line: 'rgba(255, 240, 214, 0.08)',
   'line-strong': 'rgba(255, 240, 214, 0.2)',

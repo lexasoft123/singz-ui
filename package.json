@@ -1,6 +1,6 @@
 {
   "name": "@singz/ui",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "The night-studio design language — tokens and React components shared across SingZ and friends.",
   "author": "lexasoft <lexasoft@gmail.com>",
   "license": "MIT",
@@ -27,6 +27,10 @@
     "./stems": {
       "types": "./dist/tokens/stems.d.ts",
       "import": "./dist/tokens/stems.js"
+    },
+    "./native": {
+      "types": "./dist/native/index.d.ts",
+      "import": "./dist/native/index.js"
     }
   },
   "sideEffects": [
@@ -41,13 +45,17 @@
   },
   "peerDependencies": {
     "react": "^18.3 || ^19",
-    "react-dom": "^18.3 || ^19"
+    "react-dom": "^18.3 || ^19",
+    "react-native": ">=0.76"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "react-native": {
       "optional": true
     }
   },
@@ -56,6 +64,7 @@
     "@types/react-dom": "^19.2.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-native": "^0.86.0",
     "typescript": "^5.8.3"
   }
 }
