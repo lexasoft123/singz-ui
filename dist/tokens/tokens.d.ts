@@ -31,6 +31,8 @@ export declare const tokens: {
      *  focused field. It was computed inline in three places (and written by
      *  hand as rgba(255,160,40,.55) in SingZ) before it was named. */
     readonly 'accent-line': "rgba(255, 160, 40, 0.55)";
+    /** The focus ring. Measured 4.86:1 on --panel and 5.06:1 on --bg. */
+    readonly 'focus-ring': "rgba(255, 160, 40, 0.7)";
     /** A surface that floats ABOVE the app — modal cards, popovers. Lighter
      *  than --panel because it sits over a darkened, blurred scrim. */
     readonly 'surface-raised': "#1e1a15";

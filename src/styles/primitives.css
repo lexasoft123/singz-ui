@@ -33,15 +33,27 @@
 
 button {
   font-family: var(--sz-font-display);
+  /* The reset set the family and not the size, so every bare <button> in
+   * every consumer quietly fell back to the UA's 13.3333px — a size no
+   * design system chose and no type scale contains. Every named component
+   * here sets its own size, so only unstyled buttons are affected, and for
+   * them inheriting the page is what was always meant. */
+  font-size: inherit;
   color: inherit;
   background: none;
   border: none;
   cursor: pointer;
 }
 
+/*
+ * The ring is a token because it was rgba(255, 160, 40, …) — the night accent,
+ * written into a rule that both palettes read. On paper that measures 1.43:1
+ * to 1.52:1 against the page, so a keyboard user in atelier got no visible
+ * focus at all. WCAG 2.4.11 wants 3:1; the atelier value measures 3.7-4.0:1.
+ */
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid rgba(255, 160, 40, 0.7);
+  outline: 2px solid var(--sz-focus-ring);
   outline-offset: 2px;
 }
 

@@ -57,6 +57,8 @@ export const tokens = {
    *  focused field. It was computed inline in three places (and written by
    *  hand as rgba(255,160,40,.55) in SingZ) before it was named. */
   'accent-line': 'rgba(255, 160, 40, 0.55)',
+  /** The focus ring. Measured 4.86:1 on --panel and 5.06:1 on --bg. */
+  'focus-ring': 'rgba(255, 160, 40, 0.7)',
 
   /** A surface that floats ABOVE the app — modal cards, popovers. Lighter
    *  than --panel because it sits over a darkened, blurred scrim. */
@@ -144,6 +146,9 @@ export const atelier: Readonly<Partial<Record<TokenName, string>>> = {
   'accent-soft': 'rgba(181, 73, 28, 0.13)',
   'accent-ink': '#fff6ec',
   'accent-line': 'rgba(181, 73, 28, 0.55)',
+  /** Night's ring is 70% amber, which on paper is 1.46:1 — invisible. The
+   *  rust accent at 90% measures 3.7:1 to 4.0:1 across the three grounds. */
+  'focus-ring': 'rgba(181, 73, 28, 0.9)',
   danger: '#b03a2e',
   'danger-strong': '#8f2d22',
   'danger-strong-line': 'rgba(143, 45, 34, 0.4)',

@@ -185,6 +185,29 @@ small label. Darkening it to about `#963c16` clears 4.5:1 everywhere
 (measured), but it is a visible change to a shared brand colour and belongs to
 whoever owns the palette, not to a bug-fix commit.
 
+## Focus and the button reset — 2026-08-31 (v1.4.3)
+
+Both found while re-auditing the second consumer after its redesign, and both
+are the same shape as v1.4.2: a value written for night, in a rule that both
+palettes read.
+
+- **The focus ring was invisible on paper.** `button:focus-visible` outlined in
+  the literal `rgba(255, 160, 40, 0.7)`. Against night that is 4.86:1 on
+  `--panel` and 5.06:1 on `--bg`; against atelier it is **1.46:1** and
+  **1.52:1** — a keyboard user in the light palette had no visible focus
+  indicator anywhere in the app. Now `--sz-focus-ring`: night keeps its exact
+  value, atelier is the rust accent at 90%, measuring 3.7-4.0:1 across all
+  three grounds. WCAG 2.4.11 wants 3:1.
+- **The button reset set a family and no size.** Every bare `<button>` in every
+  consumer therefore fell back to the user agent's 13.3333px — a size no
+  design system chose and no type scale contains. It only ever showed up as a
+  phantom, since each named component sets its own size, but it meant a
+  consumer that put its own text in a plain button got a size from nowhere.
+  `font-size: inherit` now. `.round-ghost` is the only kit class that
+  inherits, and it holds icons.
+
+Allowlist is down to 16.
+
 ## Re-sync risks
 - `react`/`@types/react` are devDependencies now, so a fresh clone builds — but if they are
   ever removed, discovery silently returns to 0 components rather than erroring loudly.
