@@ -117,7 +117,7 @@ input:focus-visible {
 }
 
 .pill.primary {
-  background: linear-gradient(180deg, #ffbe58, var(--sz-accent-deep));
+  background: linear-gradient(180deg, var(--sz-accent-lift), var(--sz-accent-deep));
   color: var(--sz-accent-ink);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.25) inset,

@@ -162,6 +162,29 @@ conventions forbid.
   fires. Consumers must NOT add their own copy — duplicate `!important` sweeps
   are how this rule becomes un-overridable.
 
+## Atelier legibility — 2026-08-31 (v1.4.2)
+
+Found while measuring the second consumer under BOTH palettes; the audit that
+produced v1.4.1 had only ever measured night.
+
+- **`.pill.primary` was not palette-aware.** Its gradient's light stop was the
+  literal `#ffbe58`, allowlisted in `check-themeable` with the note "pairs with
+  --sz-accent-deep" — true in night, and false the moment atelier shipped a
+  dark-rust `--accent-deep` and a near-white `--accent-ink`. The button ran
+  light-amber to dark-rust under white text: **1.54:1** at the top edge. The
+  stop is now `--sz-accent-lift` (night `#ffbe58`, atelier `#b5491c`, measured
+  4.99:1 against the ink), and the allowlist is down to 17 entries. A gradient
+  stop inside a themed component is a token, and an allowlist entry that
+  documents an assumption is only as good as the assumption.
+
+**Known, not fixed here:** atelier's `--accent` (`#b5491c`) is marginal as
+*text*. It measures 4.45:1 on `--panel` and 3.63:1 once it sits on its own
+`--accent-soft` tint, so `.mode-seg button.on` (3.95:1) and `.pill.on`
+(3.64:1) fail AA in that palette, as does any consumer using accent for a
+small label. Darkening it to about `#963c16` clears 4.5:1 everywhere
+(measured), but it is a visible change to a shared brand colour and belongs to
+whoever owns the palette, not to a bug-fix commit.
+
 ## Re-sync risks
 - `react`/`@types/react` are devDependencies now, so a fresh clone builds — but if they are
   ever removed, discovery silently returns to 0 components rather than erroring loudly.

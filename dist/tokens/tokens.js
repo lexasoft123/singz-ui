@@ -39,6 +39,12 @@ export const tokens = {
     // brand
     accent: '#ffa028',
     'accent-deep': '#ff8a1f',
+    /** The light end of the primary button's gradient — a highlight above
+     *  --accent-deep, not a shade of it. It was a literal in primitives.css
+     *  and therefore stayed amber when the atelier palette arrived, giving
+     *  that palette a light-amber-to-dark-rust button under near-white ink at
+     *  1.54:1. A gradient stop in a themed component is a token. */
+    'accent-lift': '#ffbe58',
     'accent-soft': 'rgba(255, 160, 40, 0.13)',
     /** Text ON an accent fill — dark enough to read against #ffa028. */
     'accent-ink': '#241705',
@@ -115,6 +121,10 @@ export const atelier = {
     faint: '#8e7f66',
     accent: '#b5491c',
     'accent-deep': '#983d16',
+    /** On paper the ink is near-white, so the whole gradient has to stay dark:
+     *  the lift is the accent itself, and the fall is --accent-deep. Measured
+     *  4.99:1 against --accent-ink at the light end. */
+    'accent-lift': '#b5491c',
     'accent-soft': 'rgba(181, 73, 28, 0.13)',
     'accent-ink': '#fff6ec',
     'accent-line': 'rgba(181, 73, 28, 0.55)',

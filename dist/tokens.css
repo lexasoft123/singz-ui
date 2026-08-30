@@ -18,6 +18,7 @@
   --sz-faint: #6b6355;
   --sz-accent: #ffa028;
   --sz-accent-deep: #ff8a1f;
+  --sz-accent-lift: #ffbe58;
   --sz-accent-soft: rgba(255, 160, 40, 0.13);
   --sz-accent-ink: #241705;
   --sz-accent-line: rgba(255, 160, 40, 0.55);
@@ -59,6 +60,7 @@
   --sz-faint: #8e7f66;
   --sz-accent: #b5491c;
   --sz-accent-deep: #983d16;
+  --sz-accent-lift: #b5491c;
   --sz-accent-soft: rgba(181, 73, 28, 0.13);
   --sz-accent-ink: #fff6ec;
   --sz-accent-line: rgba(181, 73, 28, 0.55);

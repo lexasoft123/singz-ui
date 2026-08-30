@@ -23,7 +23,6 @@ const NATIVE = join(ROOT, 'src', 'native')
 const ALLOWED = new Map([
   ['#fff', 'text on the Windows close button, which is always red'],
   ['#c42b1c', "Windows' own close-button red — an OS convention, not ours"],
-  ['#ffbe58', 'the light end of the primary gradient; pairs with --sz-accent-deep'],
   ['rgba(255, 160, 40, 0.7)', 'focus ring — deliberately the accent at fixed alpha'],
   ['rgba(255,160,40,0.7)', 'focus ring'],
   ['rgba(255, 255, 255, 0.25)', 'inset highlight on the primary gradient'],

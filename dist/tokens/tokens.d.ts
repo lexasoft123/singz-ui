@@ -18,6 +18,12 @@ export declare const tokens: {
     readonly faint: "#6b6355";
     readonly accent: "#ffa028";
     readonly 'accent-deep': "#ff8a1f";
+    /** The light end of the primary button's gradient — a highlight above
+     *  --accent-deep, not a shade of it. It was a literal in primitives.css
+     *  and therefore stayed amber when the atelier palette arrived, giving
+     *  that palette a light-amber-to-dark-rust button under near-white ink at
+     *  1.54:1. A gradient stop in a themed component is a token. */
+    readonly 'accent-lift': "#ffbe58";
     readonly 'accent-soft': "rgba(255, 160, 40, 0.13)";
     /** Text ON an accent fill — dark enough to read against #ffa028. */
     readonly 'accent-ink': "#241705";
