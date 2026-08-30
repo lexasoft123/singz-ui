@@ -111,7 +111,7 @@ input:focus-visible {
   color: var(--sz-text);
 }
 
-.pill.ghost:hover {
+.pill.ghost:hover:not(:disabled) {
   border-color: var(--sz-line-strong);
   transform: translateY(-1px);
 }
@@ -124,7 +124,7 @@ input:focus-visible {
     0 6px 22px rgba(255, 150, 40, 0.28);
 }
 
-.pill.primary:hover {
+.pill.primary:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.25) inset,
@@ -137,15 +137,35 @@ input:focus-visible {
   cursor: default;
 }
 
-/* Sets border-COLOR only: it rides on the border .ghost already drew. */
+/*
+ * Draws its OWN outline. It used to set border-colour only and ride on the
+ * border .ghost had drawn, which worked for SingZ's hand-written
+ * `pill ghost small danger` and not at all for <Button variant="danger">:
+ * that emits `pill danger`, so the documented "danger is an outline" came
+ * out borderless. Redeclaring the full border here is idempotent for the
+ * ghost+danger spelling and correct for the variant on its own.
+ */
 .pill.danger {
   color: var(--sz-danger-strong);
-  border-color: var(--sz-danger-strong-line);
+  border: 1px solid var(--sz-danger-strong-line);
 }
 
 .pill.danger:hover:not(:disabled) {
   background: var(--sz-danger-strong-wash);
   border-color: var(--sz-danger-strong);
+}
+
+/*
+ * ON — an action that is currently engaged: a panel toggle, a mode that is
+ * running. SingZ wrote this treatment twice by hand (`.catalog-btn.active`,
+ * `.pill.karaoke.active`) and ChordZ twice more before it was named. It is
+ * the same pressed treatment `.chip.active` and `.mode-seg button.on` use,
+ * so a toggled pill, chip and segment all read as one idea.
+ */
+.pill.on {
+  background: var(--sz-accent-soft);
+  border-color: var(--sz-accent-line);
+  color: var(--sz-accent);
 }
 
 /* A round icon button. Hosts add their own state modifier alongside. */
@@ -162,9 +182,30 @@ input:focus-visible {
     border-color 0.15s;
 }
 
-.round-ghost:hover {
+.round-ghost:hover:not(:disabled) {
   color: var(--sz-text);
   border-color: var(--sz-line-strong);
+}
+
+/* ————————————————————————————————— disabled ————— */
+
+/*
+ * Until now only `.pill.primary` and `.mode-seg button` dimmed, so a
+ * disabled ghost button, chip, link or round button was dead to the pointer
+ * and still looked live. Five host-side rules had grown to paper over that
+ * (`.zoom-seg button:disabled`, `.variant:disabled`, `.chip.zoom:disabled`,
+ * `.src-link:disabled`, `.bpm-entry.disabled`) — those were the evidence the
+ * shared rule was wanted, and 0.45 is the value they agreed on.
+ *
+ * `.mode-seg button:disabled` keeps its own 0.4: it already had a
+ * treatment, and moving it would repaint a control nobody asked about.
+ */
+.pill:disabled,
+.chip:disabled,
+.linkish:disabled,
+.round-ghost:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* ————————————————————————————————— chip ————— */
@@ -185,7 +226,7 @@ input:focus-visible {
     border-color 0.15s;
 }
 
-.chip:hover {
+.chip:hover:not(:disabled) {
   border-color: var(--sz-line-strong);
   color: var(--sz-text);
 }
@@ -197,10 +238,20 @@ input:focus-visible {
    --stem) win on specificity and are unaffected. */
 .chip.active {
   background: var(--sz-accent-soft);
-  /* Computes to exactly the rgba(255,160,40,.55) the app writes by hand, but
-     derived: a literal here is a border a re-themed consumer cannot move. */
-  border-color: color-mix(in srgb, var(--sz-accent) 55%, transparent);
+  border-color: var(--sz-accent-line);
   color: var(--sz-accent);
+}
+
+/*
+ * A chip with a word in it. The 26px square is right for M / S and wrong for
+ * "Maj Pent" — ChordZ needed a text chip in three separate rows and was
+ * relaxing the width itself. Width only: radius, weight and the pressed
+ * treatment are unchanged, so a wide chip is still visibly a chip.
+ */
+.chip.wide {
+  width: auto;
+  min-width: 26px;
+  padding: 0 9px;
 }
 
 /* ————————————————————————————————— segmented control ————— */
@@ -240,7 +291,7 @@ input:focus-visible {
   border-radius: 6px;
 }
 
-.linkish:hover {
+.linkish:hover:not(:disabled) {
   background: var(--sz-accent-soft);
 }
 
@@ -255,4 +306,60 @@ input:focus-visible {
   border: 1px solid var(--sz-line-strong);
   border-radius: 99px;
   padding: 2px 7px;
+}
+
+/*
+ * A badge whose content is not a noun to be shouted. Uppercasing is the
+ * badge's whole idea, so this is deliberately opt-in — but some content
+ * carries meaning in its case: ChordZ tags songs with a musical key, and
+ * "Am" set as "AM" turns A minor into A major.
+ */
+.badge.plain {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* ————————————————————————————————— eyebrow ————— */
+
+/*
+ * The small capitalised label over a group of controls. There were nine of
+ * these in SingZ at seven different sizes and six different letter-spacings,
+ * and six more in ChordZ — every one hand-written, none quite matching. It
+ * is a type style, not a component, so it is a class you put on whatever
+ * element already exists.
+ */
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sz-faint);
+}
+
+/* ————————————————————————————————— scrollbars ————— */
+
+/*
+ * Both apps restyled these, and picked different greys. The thumb is inset
+ * by a transparent border rather than a --sz-bg one so it works on a panel
+ * as well as on the page ground.
+ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sz-scroll-thumb);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sz-scroll-thumb-hover);
+  background-clip: content-box;
 }

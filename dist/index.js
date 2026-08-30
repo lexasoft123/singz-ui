@@ -9,7 +9,7 @@
  *   v0.1.0  tokens
  *   v0.2.0  primitives  <- here
  */
-export { tokens, cssVar, toCss } from './tokens/tokens.js';
+export { tokens, atelier, cssVar, toCss } from './tokens/tokens.js';
 export { cx } from './util/cx.js';
 export { Button } from './primitives/Button.js';
 export { Chip } from './primitives/Chip.js';

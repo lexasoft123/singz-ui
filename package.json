@@ -1,7 +1,7 @@
 {
   "name": "@singz/ui",
-  "version": "1.3.0",
-  "description": "The night-studio design language — tokens and React components shared across SingZ and friends.",
+  "version": "1.4.0",
+  "description": "The night-studio design language \u2014 tokens and React components shared across SingZ and friends.",
   "author": "lexasoft <lexasoft@gmail.com>",
   "license": "MIT",
   "type": "module",

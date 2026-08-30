@@ -14,7 +14,13 @@ export interface LinkButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 export declare function LinkButton({ className, type, ...rest }: LinkButtonProps): React.JSX.Element;
 export interface BadgeProps {
     children?: React.ReactNode;
+    /**
+     * Uppercase the content. True by default — that is what a badge is.
+     * Pass false when the case carries meaning: ChordZ badges a song's key,
+     * and "Am" shouted as "AM" is a different chord.
+     */
+    caps?: boolean;
     className?: string;
 }
 /** `.badge` — a small uppercase outline tag. */
-export declare function Badge({ children, className }: BadgeProps): React.JSX.Element;
+export declare function Badge({ children, caps, className }: BadgeProps): React.JSX.Element;

@@ -13,11 +13,12 @@ wins — but if you put components on a light panel of your own, give that panel
 `color` too or ghost buttons go near-white on white.
 
 **Colour comes from tokens, never literals.** Every value is a `--sz-*` custom
-property. Override them at `:root` and the whole system re-themes — the same
-components render correctly on a light paper palette. If something stays dark after
-you re-theme, that's a bug in the kit, not in your override.
+property. Two palettes ship: night-studio at `:root`, and a light paper "atelier"
+under `data-sz-palette="atelier"` on `<html>`. Override the variables for anything
+else. If something stays dark after you re-theme, that's a bug in the kit, not in
+your override.
 
-**Class names are plain, and deliberately so.** `pill`, `chip`, `mode-seg`, `fine`,
+**Class names are plain, and deliberately so.** `pill`, `chip`, `mode-seg`,
 `modal-card`, `badge`, `linkish`. No `sz-` prefix. They read like ordinary CSS, and
 they collide with ordinary CSS — scope your own rules if you're mixing in another kit.
 
@@ -26,10 +27,13 @@ they collide with ordinary CSS — scope your own rules if you're mixing in anot
 | Want | Use | Notes |
 |---|---|---|
 | An action | `<Button variant="ghost" \| "primary" \| "danger" size="md" \| "sm">` | One `primary` per view. `danger` is an outline, not a fill. |
-| A toggle in a dense row | `<Chip active>` | 26×24. Mute/solo scale. |
+| An action that is engaged | `<Button active>` | The open panel, the running mode. Paints `.pill.on`, sets aria-pressed. |
+| A toggle in a dense row | `<Chip active>` | 26×24. Mute/solo scale. `wide` when it holds a word. |
+| A label over a group | `class="eyebrow"` | A type style, not a component. Put it on the element you already have. |
+| A scrub bar or a level | `<input type="range" class="slider seek \| slider">` | `seek` fills from the host's `--p`. |
 | A small either/or | `<SegmentedControl>` | Pill-bordered, amber on the chosen segment. |
-| A dialog | `<Modal>` + `<ModalActions>` | See below. |
-| A tag | `<Badge>` | Uppercase, letter-spaced, outline. Nouns, lowercase input. |
+| A dialog | `<Modal>` + `.modal-title` + `.modal-body` + `<ModalActions>` | See below. |
+| A tag | `<Badge>` | Uppercase, letter-spaced, outline. Nouns, lowercase input. `caps={false}` when the case means something. |
 | A live/idle indicator | `<StatusDot tone>` | 6px. Pair with a label; the dot alone isn't accessible. |
 | An inline action inside prose | `<LinkButton>` | Reads as a link, *is* a `<button>`. |
 | Audio | `<Waveform>` | Needs a sized, positioned parent and host-set `--stem` / `--p`. |
@@ -37,11 +41,11 @@ they collide with ordinary CSS — scope your own rules if you're mixing in anot
 
 ## Things that will bite you
 
-**`disabled` mostly paints nothing.** Only `Button variant="primary"` and
-`SegmentedControl` dim themselves. A disabled `ghost` button, `Chip` or `LinkButton`
-is dead to the pointer but still *looks* clickable — add `opacity: .45; cursor:
-default` yourself. Every affected preview shows the kit's rendering beside a
-host-dimmed one.
+**`disabled` now paints.** As of 1.4.0 `.pill`, `.chip`, `.linkish`, `.round-ghost`
+and `.slider` all dim to `opacity: .45` and stop lifting on hover; `.mode-seg button`
+keeps its own long-standing `.4`. Host rules that were dimming these by hand are now
+redundant rather than wrong. (Previews captured before 1.4.0 show the old
+undimmed rendering beside a host-dimmed one.)
 
 **`Modal` is the shell, not the sizing.** Width comes from `cardClassName`
 (`.settings-card`, `.picker-card`, `.confirm-card`), and those classes belong to the
@@ -53,6 +57,12 @@ something is in flight and paints nothing — dim the actions yourself.
 parent with a height. `.win-controls` is `position: fixed`, so anywhere but the real
 window titlebar it escapes to the viewport corner — put a `transform: translateZ(0)`
 on the box that should contain it.
+
+**The kit paints the room.** `body::before` / `body::after` carry two ambient lamps
+and a film grain, at `:where()` specificity, and `.app` is raised to `z-index: 1` so
+the grain grades everything. If you draw your own `body::before`, you replace the
+lamps — that is a choice, not a collision. To switch the room off, set
+`--sz-ambient-*` to `transparent` and `--sz-grain-opacity` to `0`.
 
 **Hosts outrank the kit on state colour.** SingZ fills a pressed `Chip` with that
 lane's `--stem` rather than the amber accent. That's expected: write a more specific

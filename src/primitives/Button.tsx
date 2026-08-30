@@ -14,6 +14,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'md' | 'sm'
   /** Icon-only, tightened padding — `.pill.gear`. */
   icon?: boolean
+  /**
+   * The action is currently engaged — a panel that is open, a mode that is
+   * running. Paints `.pill.on` and sets aria-pressed, which makes the pill a
+   * toggle to a screen reader as well as to the eye.
+   *
+   * Omitted, not defaulted to false: a one-shot button that announced
+   * itself as an unpressed toggle would be worse than saying nothing.
+   */
+  active?: boolean
   /** Appended AFTER the kit's classes, so hosts keep their own hooks:
    *  `mic-toggle`, `update-chip`, `catalog-btn` are all E2E selectors. */
   className?: string
@@ -29,14 +38,22 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
  * and a stray submit inside a form is a bug nobody enjoys finding.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = 'ghost', size = 'md', icon = false, className, type = 'button', ...rest },
+  { variant = 'ghost', size = 'md', icon = false, active, className, type = 'button', ...rest },
   ref
 ) {
   return (
     <button
       ref={ref}
       type={type}
-      className={cx('pill', variant, size === 'sm' && 'small', icon && 'gear', className)}
+      aria-pressed={active}
+      className={cx(
+        'pill',
+        variant,
+        size === 'sm' && 'small',
+        icon && 'gear',
+        active && 'on',
+        className
+      )}
       {...rest}
     />
   )

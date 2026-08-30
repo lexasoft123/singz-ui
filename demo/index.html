@@ -17,7 +17,9 @@
         font-size: 20px;
         margin: 0 0 4px;
       }
-      h2 {
+      /* `body >` so the gallery's own headings do not restyle a kit
+         component that happens to use an h2 — .modal-title did. */
+      body > h2 {
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -63,37 +65,20 @@
         z-index: 5;
       }
       /*
-       * ChordZ's light "atelier" palette. This is the acceptance test for the
-       * token set: if anything stays dark when this is applied, some colour is
-       * still hardcoded and no other app can use the kit.
+       * The light palette is no longer written here: it SHIPS, as
+       * `[data-sz-palette='atelier']` in tokens.css. This page is still the
+       * acceptance test for it — if anything stays dark when the attribute
+       * goes on, some colour is still hardcoded and no other app can use
+       * the kit — but now the thing under test is the artifact consumers
+       * actually get, not a copy of it that can drift.
        */
-      body.atelier {
-        --sz-bg: #f6f0e4;
-        --sz-panel: #f1ead8;
-        --sz-panel-deep: #eee6d2;
-        --sz-surface-raised: #fbf6eb;
-        --sz-line: rgba(31, 26, 18, 0.14);
-        --sz-line-strong: rgba(31, 26, 18, 0.28);
-        --sz-text: #1f1a12;
-        --sz-dim: #594a33;
-        --sz-faint: #8e7f66;
-        --sz-accent: #b5491c;
-        --sz-accent-deep: #983d16;
-        --sz-accent-soft: rgba(181, 73, 28, 0.13);
-        --sz-accent-ink: #fff6ec;
-        --sz-danger: #b03a2e;
-      --sz-danger-strong: #8f2d22;
-      --sz-danger-strong-line: rgba(143, 45, 34, 0.4);
-      --sz-danger-strong-wash: rgba(143, 45, 34, 0.12);
-        --sz-danger-surface: #f7e2dc;
-        --sz-danger-surface-text: #7a2a1e;
-        --sz-danger-surface-line: rgba(176, 58, 46, 0.4);
-        --sz-success: #2f7d4f;
-      }
     </style>
   </head>
   <body>
-    <button class="pill ghost small themer" onclick="document.body.classList.toggle('atelier')">
+    <button
+      class="pill ghost small themer"
+      onclick="const r=document.documentElement; r.getAttribute('data-sz-palette')==='atelier' ? r.removeAttribute('data-sz-palette') : r.setAttribute('data-sz-palette','atelier')"
+    >
       Toggle atelier theme
     </button>
 
@@ -106,21 +91,55 @@
     <div class="row">
       <button class="pill ghost">Ghost</button>
       <button class="pill primary">Primary</button>
-      <button class="pill ghost danger">Danger</button>
+      <button class="pill danger">Danger</button>
+      <button class="pill ghost on">Engaged</button>
       <button class="pill ghost small">Small</button>
       <button class="pill ghost small" disabled>Disabled</button>
       <button class="round-ghost">◼</button>
+      <button class="round-ghost" disabled>◼</button>
     </div>
 
     <h2>Chips, dots, badges</h2>
     <div class="row">
       <button class="chip">M</button>
       <button class="chip active">S</button>
+      <button class="chip" disabled>M</button>
+      <button class="chip wide">Maj Pent</button>
+      <button class="chip wide active">Min Pent</button>
       <span class="badge">synced</span>
+      <span class="badge plain">Am</span>
       <span class="dot ok"></span>
       <span class="dot idle"></span>
       <span class="dot warn"></span>
       <button class="linkish">A text button</button>
+    </div>
+
+    <h2>Eyebrow</h2>
+    <div class="row">
+      <span class="eyebrow">Transpose</span>
+      <span class="eyebrow">Chords used</span>
+      <span class="eyebrow">Library</span>
+    </div>
+
+    <h2>Sliders</h2>
+    <div class="row">
+      <input class="slider seek" type="range" value="38" style="--p: 38%; width: 260px" />
+      <input class="slider" type="range" value="60" style="width: 160px" />
+      <input class="slider" type="range" value="60" style="width: 160px" disabled />
+    </div>
+
+    <h2>Dialog copy</h2>
+    <div class="row">
+      <div class="modal-card" style="width: 360px">
+        <h2 class="modal-title">Delete this song?</h2>
+        <p class="modal-body">
+          “Scarborough Fair” will be removed from the library. This cannot be undone.
+        </p>
+        <div class="modal-actions">
+          <button class="pill danger">Delete</button>
+          <button class="pill ghost">Keep</button>
+        </div>
+      </div>
     </div>
 
     <h2>Segmented control</h2>

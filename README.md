@@ -19,11 +19,11 @@ import { STEM_META } from '@singz/ui/stems'
 
 | Layer | Contents |
 |---|---|
-| tokens | colours, surfaces, status, type — one `:root` block, generated from `tokens.ts` |
-| primitives | `Button` `Chip` `SegmentedControl` `StatusDot` `LinkButton` `Badge`, the button reset and focus ring |
-| overlays | `Modal` `ModalActions`, toast, `useDismissable`, `useModalLock` |
-| audio | `Waveform`, `fitCanvas` |
-| chrome | `WindowButtons`, `applyPlatformClasses`, frameless-window CSS |
+| tokens | colours, surfaces, status, type — two palettes, generated from `tokens.ts` |
+| primitives | `Button` `Chip` `SegmentedControl` `StatusDot` `LinkButton` `Badge`, `.eyebrow`, the button reset, the focus ring, scrollbars and one shared `:disabled` |
+| overlays | `Modal` `ModalActions`, `.modal-title` / `.modal-body`, toast, `useDismissable`, `useModalLock` |
+| audio | `Waveform`, `fitCanvas`, `.slider` / `.slider.seek` |
+| chrome | the room (ambient lamps + film grain), `WindowButtons`, `applyPlatformClasses`, frameless-window CSS |
 | native | React Native glass surfaces, navigation, settings, pitch feedback and training controls |
 | icon | `paint`, the liquid-glass app-icon recipe as a plain function — see [`recipes/app-icon`](recipes/app-icon) |
 
@@ -66,20 +66,29 @@ generates the web custom properties. Apps may wrap a subtree in
 
 ## Theming
 
-`tokens.css` is the only file with literal colours; everything else draws from
-`var(--sz-…)`. Override the block and the kit follows:
+Two palettes ship. **night-studio** is `:root`; **atelier** — warm paper,
+burnt sienna — is one attribute away:
+
+```html
+<html data-sz-palette="atelier">
+```
+
+It used to live only in `demo/index.html`, and two apps then re-typed it by
+hand, which is the drift this package exists to stop. Anything else is still
+an override: `tokens.css` is the only file with literal colours, everything
+else draws from `var(--sz-…)`, so redefining the variables after the kit
+re-themes it:
 
 ```css
 :root {
-  --sz-bg: #f6f0e4;
-  --sz-text: #1f1a12;
-  --sz-accent: #b5491c;
+  --sz-bg: #101418;
+  --sz-accent: #4fd1c5;
 }
 ```
 
-`demo/index.html` renders every component with a toggle between night-studio
-and a light "atelier" palette. That toggle is the acceptance test, and it is
-automated two ways:
+`demo/index.html` renders every component with a toggle between the two
+shipped palettes. That toggle is the acceptance test, and it is automated
+two ways:
 
 ```bash
 npm run themeable   # fails on any literal colour outside tokens.css
@@ -103,7 +112,14 @@ Two variables the kit reads but never sets:
 
 `--p` is why progress costs no canvas redraws: `Waveform`'s bright layer is
 the same waveform clipped at the playhead, so moving it is one CSS variable
-write per frame rather than a repaint per lane.
+write per frame rather than a repaint per lane. `.slider.seek` fills its
+track from the same variable, so a scrub bar and a waveform cannot disagree
+about where the playhead is.
+
+The room — two ambient lamps and a film grain — is painted on `body::before`
+and `body::after` at `:where()` specificity. A host with its own `body::before`
+keeps it; a host that wants no room sets `--sz-ambient-warm` /
+`--sz-ambient-cool` to `transparent` and `--sz-grain-opacity` to `0`.
 
 The host also owns the pause policy for `body.modal-open`. SingZ freezes
 infinite animations behind a modal because every invalidated pixel under a

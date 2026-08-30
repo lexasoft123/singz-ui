@@ -1,6 +1,15 @@
 /* ——————————————————————————— night-studio · audio ————— */
 
 /*
+ * The scrub / level control.
+ *
+ * `.seek` fills its track up to --p — the SAME variable the waveform clips
+ * on, so a host that already drives a playhead gets the bar for free and the
+ * two can never disagree about where the playhead is. A plain `.slider` (no
+ * --p) is a level: speed, volume, gain.
+ */
+
+/*
  * Two contracts the host fulfils, neither of which is a token:
  *
  *   --stem  this lane's colour, set inline per lane
@@ -11,6 +20,41 @@
  * waveform clipped at the playhead, so moving the playhead is one CSS
  * variable write per frame rather than a repaint per lane.
  */
+
+.slider {
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--sz-line-strong);
+  cursor: pointer;
+}
+
+.slider.seek {
+  background: linear-gradient(
+    90deg,
+    var(--sz-accent) 0 var(--p, 0%),
+    var(--sz-line-strong) var(--p, 0%) 100%
+  );
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--sz-accent);
+}
+
+.slider.seek::-webkit-slider-thumb {
+  /* A playhead glows; a level knob does not. Derived from the accent rather
+     than written as an rgba so it survives a re-theme. */
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sz-accent) 45%, transparent);
+}
+
+.slider:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
 
 .wave {
   position: absolute;

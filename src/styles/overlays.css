@@ -56,6 +56,27 @@
   animation: rise 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+/*
+ * The card's copy. The kit shipped the shell and the button row but nothing
+ * for what goes between them, so every dialog sized its own heading —
+ * SingZ has seven of them and ChordZ added one more. A dialog is a sentence
+ * and an answer; these two are the sentence.
+ */
+.modal-title {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--sz-text);
+}
+
+.modal-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--sz-dim);
+}
+
 .modal-actions {
   display: flex;
   gap: 10px;

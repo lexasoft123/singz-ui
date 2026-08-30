@@ -21,6 +21,10 @@ export declare const tokens: {
     readonly 'accent-soft': "rgba(255, 160, 40, 0.13)";
     /** Text ON an accent fill — dark enough to read against #ffa028. */
     readonly 'accent-ink': "#241705";
+    /** The border of anything engaged — a pressed chip, an `on` pill, a
+     *  focused field. It was computed inline in three places (and written by
+     *  hand as rgba(255,160,40,.55) in SingZ) before it was named. */
+    readonly 'accent-line': "rgba(255, 160, 40, 0.55)";
     /** A surface that floats ABOVE the app — modal cards, popovers. Lighter
      *  than --panel because it sits over a darkened, blurred scrim. */
     readonly 'surface-raised': "#1e1a15";
@@ -36,6 +40,14 @@ export declare const tokens: {
     readonly 'danger-surface': "#2b1c13";
     readonly 'danger-surface-text': "#ffb9a6";
     readonly 'danger-surface-line': "rgba(255, 122, 92, 0.45)";
+    readonly 'ambient-warm': "rgba(255, 160, 40, 0.07)";
+    readonly 'ambient-cool': "rgba(69, 214, 181, 0.05)";
+    readonly 'grain-opacity': "0.05";
+    readonly 'grain-blend': "overlay";
+    /** The scrollbar thumb, and its hover. Every app that has used this kit
+     *  has restyled scrollbars; two of them picked different greys. */
+    readonly 'scroll-thumb': "rgba(255, 240, 214, 0.12)";
+    readonly 'scroll-thumb-hover': "rgba(255, 240, 214, 0.22)";
     readonly 'font-display': "system-ui, sans-serif";
     readonly 'font-mono': "ui-monospace, 'SF Mono', monospace";
 };
@@ -44,5 +56,23 @@ export type TokenName = keyof typeof tokens;
  *  silently collide with the kit's — a collision should be a rename error,
  *  not a cascade coin-flip decided by stylesheet order. */
 export declare const cssVar: (name: TokenName) => string;
-/** The whole set as a `:root { … }` block. Used to generate tokens.css. */
+/**
+ * ATELIER — the shipped light palette: warm paper, burnt sienna.
+ *
+ * It lived in demo/index.html as the kit's acceptance test ("if anything
+ * stays dark when this is applied, some colour is still hardcoded"). Two
+ * apps then re-typed it by hand, which is precisely the drift this package
+ * exists to stop — so the test is now the artifact. Only the values that
+ * MOVE are listed; everything else is inherited from the block above.
+ *
+ * Apply with `data-sz-palette="atelier"` on <html> (or any subtree).
+ */
+export declare const atelier: Readonly<Partial<Record<TokenName, string>>>;
+/**
+ * Both palettes as CSS. Used to generate tokens.css.
+ *
+ * The atelier block is an attribute selector, which ties with `:root` on
+ * specificity — so it must come SECOND, and does. A consumer that wants a
+ * different light theme overrides the same variables again after this file.
+ */
 export declare function toCss(): string;

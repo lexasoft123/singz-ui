@@ -1,6 +1,52 @@
 /* ——————————————————————————— night-studio · electron chrome ————— */
 
 /*
+ * THE ROOM.
+ *
+ * Two low lamps and a film grain over the whole window. Both apps had
+ * transcribed the same four gradients and the same base64 noise by hand —
+ * one of them is why `body::before` and `body::after` are spoken for in
+ * this design language, so the kit had better be the one saying it.
+ *
+ * At :where() specificity, like the body ground it belongs with: a host
+ * that already draws its own body::before keeps it, and a host that wants
+ * no room at all sets --sz-ambient-* to transparent and --sz-grain-opacity
+ * to 0 rather than fighting a rule.
+ *
+ * z-index: the lamps sit UNDER the app and the grain sits OVER everything,
+ * so the grain grades the whole composition rather than one layer of it.
+ * That only works if the app itself is raised off z-index 0, which is why
+ * the rule below exists — both apps had written it by hand, and getting it
+ * wrong hides the entire UI behind the warm wash.
+ */
+:where(body)::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px 620px at 16% -12%, var(--sz-ambient-warm), transparent 60%),
+    radial-gradient(760px 540px at 96% 112%, var(--sz-ambient-cool), transparent 60%);
+}
+
+:where(body)::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: var(--sz-grain-opacity);
+  mix-blend-mode: var(--sz-grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:where(.app) {
+  position: relative;
+  z-index: 1;
+}
+
+/*
  * Frameless-window chrome. Assumes the host's root element is `.app`.
  *
  * Values here are load-bearing in a way most CSS is not: the Windows smoke
@@ -81,7 +127,7 @@ body.win .app {
   overflow: hidden;
 }
 
-/* the fixed grain/tungsten overlays must clip to the same rounded rect */
+/* the fixed grain/tungsten overlays above must clip to the same rounded rect */
 body.win::before,
 body.win::after {
   border-radius: 12px;

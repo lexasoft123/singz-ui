@@ -1,4 +1,4 @@
-export { tokens, cssVar, toCss, type TokenName } from './tokens/tokens.js';
+export { tokens, atelier, cssVar, toCss, type TokenName } from './tokens/tokens.js';
 export { cx } from './util/cx.js';
 export { Button, type ButtonProps, type ButtonVariant } from './primitives/Button.js';
 export { Chip, type ChipProps } from './primitives/Chip.js';

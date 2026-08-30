@@ -11,6 +11,6 @@ export function LinkButton({ className, type = 'button', ...rest }) {
     return _jsx("button", { type: type, className: cx('linkish', className), ...rest });
 }
 /** `.badge` — a small uppercase outline tag. */
-export function Badge({ children, className }) {
-    return _jsx("span", { className: cx('badge', className), children: children });
+export function Badge({ children, caps = true, className }) {
+    return _jsx("span", { className: cx('badge', !caps && 'plain', className), children: children });
 }

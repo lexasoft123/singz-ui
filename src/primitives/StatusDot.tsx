@@ -25,10 +25,16 @@ export function LinkButton({ className, type = 'button', ...rest }: LinkButtonPr
 
 export interface BadgeProps {
   children?: React.ReactNode
+  /**
+   * Uppercase the content. True by default — that is what a badge is.
+   * Pass false when the case carries meaning: ChordZ badges a song's key,
+   * and "Am" shouted as "AM" is a different chord.
+   */
+  caps?: boolean
   className?: string
 }
 
 /** `.badge` — a small uppercase outline tag. */
-export function Badge({ children, className }: BadgeProps): React.JSX.Element {
-  return <span className={cx('badge', className)}>{children}</span>
+export function Badge({ children, caps = true, className }: BadgeProps): React.JSX.Element {
+  return <span className={cx('badge', !caps && 'plain', className)}>{children}</span>
 }
