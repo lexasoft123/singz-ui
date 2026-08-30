@@ -139,8 +139,28 @@ here rather than in the app:
   inline and SingZ wrote by hand) and `--sz-scroll-thumb`, since both apps had
   restyled scrollbars to different greys.
 
-Not done here: `dist/` is rebuilt but **not committed**, so `npm run check` will fail
-on `check-dist` until it is. Everything else (`npm run themeable`, `tsc`) passes.
+`dist/` was rebuilt and committed with v1.4.0; `npm run check` passes.
+
+## Accessibility — 2026-08-31 (v1.4.1)
+
+Two findings from a Dieter Rams audit of the second consumer. Both are kit-level:
+a consumer cannot fix either without out-specifying kit rules, which the
+conventions forbid.
+
+- **`.eyebrow` failed WCAG AA in both palettes.** It was `--sz-faint`, which
+  measures 2.98:1 (night, on `--sz-panel`) to 3.44:1 (atelier, on `--sz-bg`) —
+  and at `font-size: 10px` this is small text, so AA wants 4.5:1. Now
+  `--sz-dim`: 5.68:1 worst case, 7.55:1 best, passing on all three grounds in
+  both palettes. `--sz-faint` is unchanged and keeps its job on non-text (the
+  idle dot, hairlines), where no contrast minimum applies — lightening the
+  token itself would have flattened the palette's third tier to fix a type
+  style.
+- **New: `prefers-reduced-motion` is gated.** The kit owns four keyframes and
+  every control transition and shipped them ungated. One `!important` sweep at
+  the end of `primitives.css` now covers the kit's motion and the host's at the
+  same time. Durations go to 0.01ms rather than 0 so `transitionend` still
+  fires. Consumers must NOT add their own copy — duplicate `!important` sweeps
+  are how this rule becomes un-overridable.
 
 ## Re-sync risks
 - `react`/`@types/react` are devDependencies now, so a fresh clone builds — but if they are

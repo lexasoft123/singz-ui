@@ -64,6 +64,14 @@ the grain grades everything. If you draw your own `body::before`, you replace th
 lamps — that is a choice, not a collision. To switch the room off, set
 `--sz-ambient-*` to `transparent` and `--sz-grain-opacity` to `0`.
 
+**Motion is gated for you.** As of 1.4.1 `primitives.css` ends with a
+`prefers-reduced-motion` `!important` sweep covering every animation and
+transition on the page — the kit's four keyframes and the host's own. Do NOT
+add a second copy in the app: two `!important` sweeps make the rule
+un-overridable, and there is no way back out for the one animation you may
+legitimately need. Motion the sweep cannot reach — a `requestAnimationFrame`
+loop, a scripted scroll — is still yours to gate in JS.
+
 **Hosts outrank the kit on state colour.** SingZ fills a pressed `Chip` with that
 lane's `--stem` rather than the amber accent. That's expected: write a more specific
 rule and it wins.

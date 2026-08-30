@@ -333,7 +333,13 @@ input:focus-visible {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--sz-faint);
+  /*
+   * --sz-dim, not --sz-faint. At 10px this is small text and AA wants 4.5:1;
+   * faint measures 2.98-3.44 against every ground in both palettes, dim
+   * measures 5.68-7.55. --sz-faint keeps its job on non-text (the idle dot,
+   * hairlines) where no contrast minimum applies.
+   */
+  color: var(--sz-dim);
 }
 
 /* ————————————————————————————————— scrollbars ————— */
@@ -362,4 +368,29 @@ input:focus-visible {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--sz-scroll-thumb-hover);
   background-clip: content-box;
+}
+
+/* ————————————————————————————————— reduced motion ————— */
+
+/*
+ * The kit owns four keyframes (pulse, fade, rise, toast-in) and every
+ * transition on pill/chip/round-ghost/slider/titlebar. A consumer cannot gate
+ * them from outside without out-specifying kit rules, so the gate ships here,
+ * once, and covers the host's own motion at the same time.
+ *
+ * The !important sweep is deliberate and is the documented shape of this
+ * query: it has to beat inline styles and any later author rule. Durations go
+ * to 0.01ms rather than 0 so transitionend/animationend still fire and
+ * JS that waits on them does not hang. The pulsing dot stops at one
+ * iteration but keeps its final frame, so it is still visibly a dot.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

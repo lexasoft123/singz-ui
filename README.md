@@ -20,7 +20,7 @@ import { STEM_META } from '@singz/ui/stems'
 | Layer | Contents |
 |---|---|
 | tokens | colours, surfaces, status, type — two palettes, generated from `tokens.ts` |
-| primitives | `Button` `Chip` `SegmentedControl` `StatusDot` `LinkButton` `Badge`, `.eyebrow`, the button reset, the focus ring, scrollbars and one shared `:disabled` |
+| primitives | `Button` `Chip` `SegmentedControl` `StatusDot` `LinkButton` `Badge`, `.eyebrow`, the button reset, the focus ring, scrollbars, one shared `:disabled` and the `prefers-reduced-motion` gate |
 | overlays | `Modal` `ModalActions`, `.modal-title` / `.modal-body`, toast, `useDismissable`, `useModalLock` |
 | audio | `Waveform`, `fitCanvas`, `.slider` / `.slider.seek` |
 | chrome | the room (ambient lamps + film grain), `WindowButtons`, `applyPlatformClasses`, frameless-window CSS |
