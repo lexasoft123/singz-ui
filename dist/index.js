@@ -14,6 +14,7 @@ export { cx } from './util/cx.js';
 export { Button } from './primitives/Button.js';
 export { Chip } from './primitives/Chip.js';
 export { SegmentedControl } from './primitives/SegmentedControl.js';
+export { LanguageSwitcher, SYSTEM_LANGUAGE } from './primitives/LanguageSwitcher.js';
 export { StatusDot, LinkButton, Badge } from './primitives/StatusDot.js';
 export { Modal, ModalActions } from './overlays/Modal.js';
 export { useDismissable } from './hooks/useDismissable.js';

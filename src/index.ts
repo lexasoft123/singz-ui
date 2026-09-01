@@ -19,6 +19,12 @@ export {
   type SegmentOption
 } from './primitives/SegmentedControl.js'
 export {
+  LanguageSwitcher,
+  SYSTEM_LANGUAGE,
+  type LanguageOption,
+  type LanguageSwitcherProps
+} from './primitives/LanguageSwitcher.js'
+export {
   StatusDot,
   LinkButton,
   Badge,

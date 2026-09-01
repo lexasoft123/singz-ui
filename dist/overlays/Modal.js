@@ -24,6 +24,12 @@ export function Modal({ onClose, persistent = false, cardClassName, busy = false
         const onKey = (e) => {
             if (e.code !== 'Escape')
                 return;
+            // A popover open INSIDE the card — a LanguageSwitcher's rows — owns this
+            // press: it closes itself and stops here. Both listen on the window in
+            // the capture phase, and this one registered first, so without the
+            // check Escape would close the whole dialog under an open menu.
+            if (e.target?.closest?.('[data-sz-popover]'))
+                return;
             // Capture phase + stopPropagation: the app's window-level handler would
             // otherwise ALSO act on this keypress and, for example, leave karaoke
             // while merely closing a dialog on top of it.

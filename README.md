@@ -20,7 +20,7 @@ import { STEM_META } from '@singz/ui/stems'
 | Layer | Contents |
 |---|---|
 | tokens | colours, surfaces, status, type — two palettes, generated from `tokens.ts` |
-| primitives | `Button` `Chip` `SegmentedControl` `StatusDot` `LinkButton` `Badge`, `.eyebrow`, the button reset, the focus ring, scrollbars, one shared `:disabled` and the `prefers-reduced-motion` gate |
+| primitives | `Button` `Chip` `SegmentedControl` `LanguageSwitcher` `StatusDot` `LinkButton` `Badge`, `.eyebrow`, the button reset, the focus ring, scrollbars, one shared `:disabled` and the `prefers-reduced-motion` gate |
 | overlays | `Modal` `ModalActions`, `.modal-title` / `.modal-body`, toast, `useDismissable`, `useModalLock` |
 | audio | `Waveform`, `fitCanvas`, `.slider` / `.slider.seek` |
 | chrome | the room (ambient lamps + film grain), `WindowButtons`, `applyPlatformClasses`, frameless-window CSS |
@@ -102,6 +102,45 @@ tokens move is drawing from a hardcoded value. That check is what caught
 The `--sz-` prefix is not decoration. A consumer with its own `:root` would
 otherwise collide silently and be resolved by stylesheet order; prefixed, a
 collision is a rename error instead of a coin flip.
+
+## The language switcher
+
+```tsx
+<LanguageSwitcher
+  options={[
+    { value: 'en', label: 'English', code: 'EN', hint: t('lang.en') },
+    { value: 'zh-CN', label: '简体中文', code: 'ZH', hint: t('lang.zhCN') }
+  ]}
+  value={prefs.language}
+  onChange={(language) => save({ language })}
+  system={{ label: t('lang.system'), hint: 'macOS · 简体中文', resolves: 'zh-CN', badge: t('lang.auto') }}
+  aria-label={t('prefs.language')}
+/>
+```
+
+A pill that names the language in use and opens a listbox of the rest;
+`variant="list"` lays the same rows out inline for a first-run screen. Each
+row is the language's **own** name over its name in the current language —
+the reader who needs this control is the one who cannot read the current
+language, and the endonym is the one label they are certain to recognise.
+
+An option's `flag` — an inline SVG with the `.lang-flag` class, or an
+emoji — takes the row's cell over the code, and the pill wears the flag of
+the language in use instead of the globe. The kit draws none itself: a flag
+is an asset with a palette of its own, and which flag stands for a language
+is the host's decision.
+
+`system` adds a follow-the-machine entry (value `SYSTEM_LANGUAGE`); the pill
+then shows the language it resolves to with the `badge` beside it, so
+"automatic" and "chosen" are told apart at a glance.
+
+The kit ships **no strings** for it, and no default language list. Every
+label comes from the host, which is the only party that knows what its
+dictionaries hold.
+
+Keyboard: arrows move, Enter or Space picks, Escape and Tab leave and hand
+focus back to the pill. Escape is negotiated with `Modal`: an open menu inside
+a dialog takes the press and the dialog stays.
 
 ## Contracts the host fulfils
 

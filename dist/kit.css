@@ -492,6 +492,191 @@ input:focus-visible {
   }
 }
 
+/* ————————————————————————————————— language switcher ————— */
+
+/*
+ * The rows are one thing drawn two ways: `.lang-menu` hangs off a pill and
+ * floats, `.lang-list` sits inline in a page. Both are made of `.lang-item`
+ * rows — a code cell, the language's own name over its name in the current
+ * language, and a check that only the chosen row shows.
+ *
+ * The menu is positioned against `.lang`, not the viewport: a fixed popover
+ * under a `backdrop-filter` or a transformed ancestor is positioned against
+ * THAT ancestor anyway (both create a containing block), so absolute is the
+ * honest choice. It follows that a host placing the pill at the foot of a
+ * scrolling card should open it upward — `placement="top"`.
+ */
+.lang {
+  position: relative;
+  display: inline-flex;
+}
+
+.lang-trigger {
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.lang-trigger .lang-globe {
+  flex: none;
+  opacity: 0.85;
+}
+
+.lang-trigger .lang-chev {
+  flex: none;
+  opacity: 0.55;
+  transition: transform 0.15s;
+}
+
+.lang-trigger[aria-expanded='true'] .lang-chev {
+  transform: rotate(180deg);
+}
+
+/* "auto" — the language was not chosen here, it followed the machine. */
+.lang-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sz-dim);
+  border: 1px solid var(--sz-line);
+  border-radius: 99px;
+  padding: 1px 6px;
+}
+
+.lang-menu {
+  position: absolute;
+  z-index: 80;
+  min-width: 236px;
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+  background: var(--sz-surface-raised);
+  border: 1px solid var(--sz-line-strong);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: rise 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.lang-menu.bottom {
+  top: calc(100% + 6px);
+}
+
+.lang-menu.top {
+  bottom: calc(100% + 6px);
+}
+
+.lang-menu.start {
+  left: 0;
+}
+
+.lang-menu.end {
+  right: 0;
+}
+
+.lang-list {
+  display: grid;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--sz-line);
+  border-radius: 14px;
+}
+
+.lang-item {
+  display: grid;
+  grid-template-columns: 32px 1fr 14px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 9px 7px 7px;
+  border-radius: 9px;
+  text-align: left;
+  color: var(--sz-text);
+  transition: background 0.12s;
+}
+
+.lang-item:hover:not(:disabled),
+.lang-item:focus-visible {
+  background: var(--sz-accent-soft);
+}
+
+/* the rows sit in a padded card, so the ring reads better drawn inward */
+.lang-item:focus-visible {
+  outline-offset: -2px;
+}
+
+.lang-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.lang-code {
+  height: 24px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--sz-line);
+  font-family: var(--sz-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--sz-dim);
+}
+
+.lang-code svg {
+  display: block;
+}
+
+/* A host-drawn flag: sized here so every host's flags agree, and hemmed with
+   a hairline so a flag with a white edge still has one against the card. */
+.lang-flag {
+  display: block;
+  width: 20px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--sz-line);
+}
+
+.lang-trigger .lang-flag {
+  width: 18px;
+  height: 12.6px;
+}
+
+.lang-item[aria-selected='true'] .lang-code {
+  color: var(--sz-accent);
+  border-color: var(--sz-accent-line);
+  background: var(--sz-accent-soft);
+}
+
+.lang-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.lang-label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.lang-hint {
+  font-size: 11px;
+  color: var(--sz-dim);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lang-check {
+  color: var(--sz-accent);
+  opacity: 0;
+}
+
+.lang-item[aria-selected='true'] .lang-check {
+  opacity: 1;
+}
+
 /* ——————————————————————————— night-studio · overlays ————— */
 
 /*
