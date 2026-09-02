@@ -24,7 +24,7 @@ const Screen = () => (_jsxs("svg", { width: "14", height: "14", viewBox: "0 0 24
  * default option list: a switcher that offered languages the app does not
  * have would be worse than none.
  */
-export function LanguageSwitcher({ options, value, onChange, system, variant = 'menu', placement = 'bottom', align = 'end', size = 'sm', disabled = false, className, 'aria-label': ariaLabel }) {
+export function LanguageSwitcher({ options, value, onChange, system, variant = 'menu', placement = 'bottom', align = 'end', size = 'sm', compact = false, disabled = false, className, 'aria-label': ariaLabel }) {
     const rows = system
         ? [{ value: SYSTEM_LANGUAGE, label: system.label, hint: system.hint }, ...options]
         : options;
@@ -90,5 +90,5 @@ export function LanguageSwitcher({ options, value, onChange, system, variant = '
     const shown = value === SYSTEM_LANGUAGE && system
         ? options.find((o) => o.value === system.resolves) ?? rows[selected]
         : rows[selected];
-    return (_jsxs("div", { className: cx('lang', className), children: [_jsxs("button", { ref: trigger, type: "button", className: cx('pill', 'ghost', size === 'sm' && 'small', 'lang-trigger', open && 'on'), disabled: disabled, "aria-haspopup": "listbox", "aria-expanded": open, "aria-label": ariaLabel, onClick: () => setOpen((o) => !o), children: [shown?.flag ?? _jsx(Globe, {}), _jsx("span", { className: "lang-current", children: shown?.label }), value === SYSTEM_LANGUAGE && system?.badge && _jsx("span", { className: "lang-badge", children: system.badge }), _jsx(Chevron, {})] }), open && listbox] }));
+    return (_jsxs("div", { className: cx('lang', className), children: [_jsxs("button", { ref: trigger, type: "button", className: cx('pill', 'ghost', size === 'sm' && 'small', compact && 'gear', 'lang-trigger', compact && 'compact', open && 'on'), disabled: disabled, "aria-haspopup": "listbox", "aria-expanded": open, "aria-label": compact && shown ? `${ariaLabel ? `${ariaLabel}: ` : ''}${shown.label}` : ariaLabel, title: compact ? shown?.label : undefined, onClick: () => setOpen((o) => !o), children: [shown?.flag ?? _jsx(Globe, {}), !compact && _jsx("span", { className: "lang-current", children: shown?.label }), !compact && value === SYSTEM_LANGUAGE && system?.badge && _jsx("span", { className: "lang-badge", children: system.badge }), !compact && _jsx(Chevron, {})] }), open && listbox] }));
 }

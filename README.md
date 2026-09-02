@@ -130,6 +130,10 @@ the language in use instead of the globe. The kit draws none itself: a flag
 is an asset with a palette of its own, and which flag stands for a language
 is the host's decision.
 
+`compact` makes the pill the flag alone — for a title bar or a rail, where a
+word would not fit. The current language's name moves to the tooltip, and the
+rows underneath are unchanged.
+
 `system` adds a follow-the-machine entry (value `SYSTEM_LANGUAGE`); the pill
 then shows the language it resolves to with the `badge` beside it, so
 "automatic" and "chosen" are told apart at a glance.

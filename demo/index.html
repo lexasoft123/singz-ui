@@ -157,7 +157,7 @@
     </div>
 
     <h2>Language switcher</h2>
-    <p class="sub">The pill, its rows open, and the same rows inline. Flags are host-drawn SVGs in the <code>.lang-flag</code> slot.</p>
+    <p class="sub">The pill, its rows open, the compact flag-only pill, and the same rows inline. Flags are host-drawn SVGs in the <code>.lang-flag</code> slot.</p>
     <div class="row" style="align-items: flex-start; gap: 40px">
       <div class="lang" style="margin-bottom: 150px">
         <button class="pill ghost small lang-trigger on" aria-haspopup="listbox" aria-expanded="true">
@@ -183,6 +183,9 @@
             <svg class="lang-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
           </button>
         </div>
+      </div>
+      <div class="lang">
+        <button class="pill ghost small gear lang-trigger compact" aria-haspopup="listbox" aria-expanded="false" title="简体中文" aria-label="Language: 简体中文"><svg class="lang-flag" viewBox="0 0 30 21" aria-hidden="true"><rect width="30" height="21" fill="#EE1C25"/><polygon points="5,3.5 5.94,6.21 8.8,6.26 6.52,7.99 7.35,10.74 5,9.1 2.65,10.74 3.48,7.99 1.2,6.26 4.06,6.21" fill="#FFDE00"/><circle cx="11" cy="3.2" r="0.95" fill="#FFDE00"/><circle cx="13.2" cy="5.4" r="0.95" fill="#FFDE00"/><circle cx="13.2" cy="8.4" r="0.95" fill="#FFDE00"/><circle cx="11" cy="10.6" r="0.95" fill="#FFDE00"/></svg></button>
       </div>
       <div class="lang-list" role="listbox" style="width: 260px">
         <button class="lang-item" role="option" aria-selected="false">

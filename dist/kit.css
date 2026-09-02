@@ -641,6 +641,14 @@ input:focus-visible {
   height: 12.6px;
 }
 
+/* The flag alone: `.pill.gear` padding, and the flag drawn as the pill's
+   only content. Slightly larger than in the wordy pill, since it is the
+   whole affordance. */
+.lang-trigger.compact .lang-flag {
+  width: 20px;
+  height: 14px;
+}
+
 .lang-item[aria-selected='true'] .lang-code {
   color: var(--sz-accent);
   border-color: var(--sz-accent-line);

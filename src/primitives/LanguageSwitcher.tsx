@@ -48,6 +48,15 @@ export interface LanguageSwitcherProps {
   /** menu only: which edge of the pill the rows line up with. */
   align?: 'start' | 'end'
   size?: 'md' | 'sm'
+  /**
+   * menu only: the pill is the flag alone — no name, no badge, no chevron —
+   * for a title bar or a rail, where a word would not fit. The current
+   * language's name moves to the pill's tooltip, and the rows are unchanged,
+   * so the name is one press away. Needs a `flag` on every option: without
+   * flags the pill falls back to the globe, which says nothing about which
+   * language is in use.
+   */
+  compact?: boolean
   disabled?: boolean
   className?: string
   'aria-label'?: string
@@ -104,6 +113,7 @@ export function LanguageSwitcher({
   placement = 'bottom',
   align = 'end',
   size = 'sm',
+  compact = false,
   disabled = false,
   className,
   'aria-label': ariaLabel
@@ -204,17 +214,18 @@ export function LanguageSwitcher({
       <button
         ref={trigger}
         type="button"
-        className={cx('pill', 'ghost', size === 'sm' && 'small', 'lang-trigger', open && 'on')}
+        className={cx('pill', 'ghost', size === 'sm' && 'small', compact && 'gear', 'lang-trigger', compact && 'compact', open && 'on')}
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={ariaLabel}
+        aria-label={compact && shown ? `${ariaLabel ? `${ariaLabel}: ` : ''}${shown.label}` : ariaLabel}
+        title={compact ? shown?.label : undefined}
         onClick={() => setOpen((o) => !o)}
       >
         {shown?.flag ?? <Globe />}
-        <span className="lang-current">{shown?.label}</span>
-        {value === SYSTEM_LANGUAGE && system?.badge && <span className="lang-badge">{system.badge}</span>}
-        <Chevron />
+        {!compact && <span className="lang-current">{shown?.label}</span>}
+        {!compact && value === SYSTEM_LANGUAGE && system?.badge && <span className="lang-badge">{system.badge}</span>}
+        {!compact && <Chevron />}
       </button>
       {open && listbox}
     </div>

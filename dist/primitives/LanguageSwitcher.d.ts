@@ -48,6 +48,15 @@ export interface LanguageSwitcherProps {
     /** menu only: which edge of the pill the rows line up with. */
     align?: 'start' | 'end';
     size?: 'md' | 'sm';
+    /**
+     * menu only: the pill is the flag alone — no name, no badge, no chevron —
+     * for a title bar or a rail, where a word would not fit. The current
+     * language's name moves to the pill's tooltip, and the rows are unchanged,
+     * so the name is one press away. Needs a `flag` on every option: without
+     * flags the pill falls back to the globe, which says nothing about which
+     * language is in use.
+     */
+    compact?: boolean;
     disabled?: boolean;
     className?: string;
     'aria-label'?: string;
@@ -67,4 +76,4 @@ export interface LanguageSwitcherProps {
  * default option list: a switcher that offered languages the app does not
  * have would be worse than none.
  */
-export declare function LanguageSwitcher({ options, value, onChange, system, variant, placement, align, size, disabled, className, 'aria-label': ariaLabel }: LanguageSwitcherProps): React.JSX.Element;
+export declare function LanguageSwitcher({ options, value, onChange, system, variant, placement, align, size, compact, disabled, className, 'aria-label': ariaLabel }: LanguageSwitcherProps): React.JSX.Element;
