@@ -17,7 +17,7 @@ function drawWave(canvas, peaks, buffer, scale, color, viewStart, viewEnd, bucke
     const amp = mid - 2;
     const span = viewEnd - viewStart;
     const n = peaks.length;
-    if (span * n < RAW_THRESHOLD_BUCKETS && buffer.length > 0) {
+    if (span * n < RAW_THRESHOLD_BUCKETS && buffer && buffer.length > 0) {
         // Deep zoom: true min/max waveform from the raw samples.
         const ch0 = buffer.getChannelData(0);
         const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null;

@@ -7,7 +7,7 @@ const RAW_THRESHOLD_BUCKETS = 600
 function drawWave(
   canvas: HTMLCanvasElement,
   peaks: Float32Array,
-  buffer: AudioBuffer,
+  buffer: AudioBuffer | null,
   scale: number,
   color: string,
   viewStart: number,
@@ -29,7 +29,7 @@ function drawWave(
   const span = viewEnd - viewStart
   const n = peaks.length
 
-  if (span * n < RAW_THRESHOLD_BUCKETS && buffer.length > 0) {
+  if (span * n < RAW_THRESHOLD_BUCKETS && buffer && buffer.length > 0) {
     // Deep zoom: true min/max waveform from the raw samples.
     const ch0 = buffer.getChannelData(0)
     const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null
@@ -105,8 +105,18 @@ function drawWave(
 export interface WaveformProps {
   /** Precomputed envelope, one value per bucket over the whole buffer. */
   peaks: Float32Array
-  /** Needed for the deep-zoom path, which reads raw samples. */
-  buffer: AudioBuffer
+  /**
+   * Needed for the deep-zoom path, which reads raw samples — and NULL when
+   * the caller no longer holds them.
+   *
+   * A host that decodes a whole song per lane may want that memory back once
+   * something else owns playback, keeping only `peaks`. Passing null says so,
+   * and the deep-zoom path falls back to the envelope: coarser at close zoom,
+   * correct at every scale, and drawn without the decoded audio. There is no
+   * empty-buffer stand-in to pass instead — Chromium refuses to construct a
+   * zero-length AudioBuffer, and a one-sample one draws a flat line.
+   */
+  buffer: AudioBuffer | null
   scale: number
   color: string
   /** Visible window as fractions of the whole buffer. */
