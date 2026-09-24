@@ -53,19 +53,32 @@ function glowFilter(canvas: HTMLCanvasElement, layer: Layer, dpr: number): strin
   return `drop-shadow(0 0 ${GLOW_BLUR_PX * dpr}px color-mix(in srgb, ${stem} ${Math.round(GLOW[layer] * 100)}%, transparent))`
 }
 
-function drawWave(
-  canvas: HTMLCanvasElement,
-  peaks: Float32Array,
-  buffer: AudioBuffer | null,
-  scale: number,
-  color: string,
-  viewStart: number,
-  viewEnd: number,
-  layer: Layer,
+/** What one redraw draws: the envelope and the window onto it. */
+interface Envelope {
+  peaks: Float32Array
+  buffer: AudioBuffer | null
+  scale: number
+  color: string
+  viewStart: number
+  viewEnd: number
   bucketColors?: readonly string[]
-): void {
-  const fit = fitCanvas(canvas)
-  if (!fit) return
+}
+
+type Fitted = NonNullable<ReturnType<typeof fitCanvas>>
+
+/** Copy the scratch onto a lane canvas through its glow, in bitmap pixels,
+ *  `offset` pixels right and down (negative: up and left). */
+function stamp(fit: Fitted, source: CanvasImageSource, filter: string, offset = 0): void {
+  const { ctx } = fit
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.filter = filter
+  ctx.drawImage(source, offset, offset)
+  ctx.restore()
+}
+
+/** One layer on its own: the envelope drawn onto the scratch and stamped. */
+function drawLayer(canvas: HTMLCanvasElement, fit: Fitted, env: Envelope, layer: Layer): void {
   const { ctx, dpr } = fit
   // The resting layer's canvas is larger than the lane by BASE_PAD_PX on each
   // side; the envelope is drawn in the lane's own box inside it.
@@ -78,16 +91,57 @@ function drawWave(
     // No second surface or no canvas filters: the envelope without its glow
     // beats no envelope at all.
     ctx.translate(pad, pad)
-    drawEnvelope(ctx, w, h, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors)
+    drawEnvelope(ctx, w, h, env)
     return
   }
   sctx.setTransform(dpr, 0, 0, dpr, pad * dpr, pad * dpr)
-  drawEnvelope(sctx, w, h, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors)
-  ctx.save()
-  ctx.setTransform(1, 0, 0, 1, 0, 0)
-  ctx.filter = glowFilter(canvas, layer, dpr)
-  ctx.drawImage(sctx.canvas, 0, 0)
-  ctx.restore()
+  drawEnvelope(sctx, w, h, env)
+  stamp(fit, sctx.canvas, glowFilter(canvas, layer, dpr))
+}
+
+/**
+ * Both layers. They show the same envelope in the same box — the resting
+ * canvas merely reaches BASE_PAD_PX further on every side — so it is drawn
+ * ONCE, onto the scratch at the resting canvas's size, and stamped twice:
+ * where it lies for the resting layer, and moved back by the pad for the
+ * played one. That shift is a whole number of bitmap pixels, so the played
+ * layer gets the pixels it would have drawn for itself, to the rounding, for
+ * one copy instead of a column per pixel of lane width — which is what a
+ * redraw costs.
+ * A host that pans a zoomed view redraws every lane per step, and on a weak
+ * machine drawing each envelope twice was a frame budget several times over.
+ *
+ * Anything that breaks the shared geometry — a fractional shift at an odd
+ * device pixel ratio, or a stylesheet that sizes the two canvases apart —
+ * draws each layer on its own as before. Returns whether both layers drew.
+ */
+function drawLayers(base: HTMLCanvasElement, bright: HTMLCanvasElement, env: Envelope): boolean {
+  const fb = fitCanvas(base)
+  const fr = fitCanvas(bright)
+  if (fb && fr && fb.dpr === fr.dpr && 'filter' in fb.ctx && 'filter' in fr.ctx) {
+    const shift = BASE_PAD_PX * fb.dpr
+    const w = fr.w
+    const h = fr.h
+    if (Number.isInteger(shift) && fb.w - 2 * BASE_PAD_PX === w && fb.h - 2 * BASE_PAD_PX === h) {
+      const sctx = scratchContext(base.width, base.height)
+      if (sctx) {
+        sctx.setTransform(fb.dpr, 0, 0, fb.dpr, shift, shift)
+        drawEnvelope(sctx, w, h, env)
+        stamp(fb, sctx.canvas, glowFilter(base, 'base', fb.dpr))
+        stamp(fr, sctx.canvas, glowFilter(bright, 'bright', fr.dpr), -shift)
+        return true
+      }
+    }
+  }
+  if (fb) drawLayer(base, fb, env, 'base')
+  if (fr) drawLayer(bright, fr, env, 'bright')
+  return Boolean(fb && fr)
+}
+
+/** The layout a redraw is made for: both canvases' boxes, and the ratio that
+ *  turns them into bitmaps. The same answer twice means the same drawing. */
+function drawnFor(base: HTMLCanvasElement, bright: HTMLCanvasElement): string {
+  return `${base.clientWidth}x${base.clientHeight} ${bright.clientWidth}x${bright.clientHeight} ${window.devicePixelRatio || 1}`
 }
 
 /** The waveform itself, in CSS units on a context already scaled to them. */
@@ -95,26 +149,59 @@ function drawEnvelope(
   ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D,
   w: number,
   h: number,
-  peaks: Float32Array,
-  buffer: AudioBuffer | null,
-  scale: number,
-  color: string,
-  viewStart: number,
-  viewEnd: number,
-  bucketColors?: readonly string[]
+  env: Envelope
 ): void {
-  const grad = ctx.createLinearGradient(0, 0, 0, h)
-  grad.addColorStop(0, color)
-  grad.addColorStop(0.5, color)
-  grad.addColorStop(1, color + '99')
-  ctx.fillStyle = grad
+  // Per-bucket hues paint solid columns of their own, and no fade.
+  if (env.bucketColors && !readsSamples(env)) {
+    drawColumns(ctx, w, h, env)
+    return
+  }
+  // The lane's colour is solid down to the midline and fades from there to
+  // 0x99 alpha at the bottom — a gradient that only ever moves alpha. So every
+  // column goes in as the flat colour, and ONE fill then takes the lower half
+  // down, `destination-out` by the missing 0x66: the same colour and alpha at
+  // every pixel as a gradient fill per column, to the rounding. Filling each
+  // of a lane's thousand-odd columns with the gradient itself sent the
+  // gradient along with every rectangle, and a GPU raster process unpacks
+  // each one on its own — on a weak machine that, not the drawing, was most
+  // of a redraw. `destination-out`, unlike `source-in`, touches only what it
+  // covers, so it needs no canvas-sized layer either.
+  ctx.fillStyle = env.color
+  drawColumns(ctx, w, h, env)
+  const mid = h / 2
+  const fade = ctx.createLinearGradient(0, mid, 0, h)
+  fade.addColorStop(0, 'rgba(0, 0, 0, 0)')
+  fade.addColorStop(1, `rgba(0, 0, 0, ${1 - 0x99 / 0xff})`)
+  ctx.globalCompositeOperation = 'destination-out'
+  ctx.fillStyle = fade
+  // On past the box's edges, not to them: a peak over full scale spills out of
+  // the lane (into the resting canvas's pad), and the gradient carried its
+  // last stop out there too; and at a fractional pad the box's side edges fall
+  // between bitmap pixels, where a fill ending on them would fade the first
+  // and last columns only in part. Nothing is drawn beside the box.
+  ctx.fillRect(-1, mid, w + 2, h)
+  ctx.globalCompositeOperation = 'source-over'
+}
 
+/** Whether this window is narrow enough to draw from raw samples. */
+function readsSamples({ peaks, buffer, viewStart, viewEnd }: Envelope): boolean {
+  return (viewEnd - viewStart) * peaks.length < RAW_THRESHOLD_BUCKETS && buffer !== null && buffer.length > 0
+}
+
+/** One rectangle per pixel column, in whatever fill the context holds. */
+function drawColumns(
+  ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  env: Envelope
+): void {
+  const { peaks, buffer, scale, color, viewStart, viewEnd, bucketColors } = env
   const mid = h / 2
   const amp = mid - 2
   const span = viewEnd - viewStart
   const n = peaks.length
 
-  if (span * n < RAW_THRESHOLD_BUCKETS && buffer && buffer.length > 0) {
+  if (buffer && readsSamples(env)) {
     // Deep zoom: true min/max waveform from the raw samples.
     const ch0 = buffer.getChannelData(0)
     const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null
@@ -236,19 +323,56 @@ export function Waveform({
   const baseRef = useRef<HTMLCanvasElement>(null)
   const brightRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  // The current redraw, the layout it last drew for, and the size observer.
+  // The observer lives as long as the element and calls whichever redraw is
+  // current. It used to be re-created with every new view, and an observer
+  // reports the element's size once as soon as it starts watching — so every
+  // pan or zoom drew each lane twice, the second time for a size nothing had
+  // changed.
+  const redrawRef = useRef<() => void>(() => undefined)
+  const drawnRef = useRef('')
+  const observerRef = useRef<ResizeObserver | null>(null)
 
   useLayoutEffect(() => {
+    const env: Envelope = { peaks, buffer, scale, color, viewStart, viewEnd, bucketColors }
     const redraw = (): void => {
-      if (baseRef.current)
-        drawWave(baseRef.current, peaks, buffer, scale, color, viewStart, viewEnd, 'base', bucketColors)
-      if (brightRef.current)
-        drawWave(brightRef.current, peaks, buffer, scale, color, viewStart, viewEnd, 'bright', bucketColors)
+      const base = baseRef.current
+      const bright = brightRef.current
+      if (!base || !bright) return
+      drawnRef.current = drawLayers(base, bright, env) ? drawnFor(base, bright) : ''
     }
+    redrawRef.current = redraw
     redraw()
-    const ro = new ResizeObserver(redraw)
-    if (wrapRef.current) ro.observe(wrapRef.current)
-    return () => ro.disconnect()
+    // ...and have it look again. This drawing may be for a size the observer
+    // never reports — a parent's layout effect resizes the lane before the
+    // frame, or the lane is shown in the frame it was hidden in — and would
+    // stand until the next change. Its next report now checks this drawing
+    // instead, which costs nothing when the size is the one just drawn.
+    const ro = observerRef.current
+    const wrap = wrapRef.current
+    if (ro && wrap) {
+      ro.unobserve(wrap)
+      ro.observe(wrap)
+    }
   }, [peaks, buffer, scale, color, viewStart, viewEnd, bucketColors])
+
+  // A new size redraws; a report of the size last drawn for does not.
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap) return
+    const ro = new ResizeObserver(() => {
+      const base = baseRef.current
+      const bright = brightRef.current
+      if (base && bright && drawnRef.current === drawnFor(base, bright)) return
+      redrawRef.current()
+    })
+    ro.observe(wrap)
+    observerRef.current = ro
+    return () => {
+      ro.disconnect()
+      observerRef.current = null
+    }
+  }, [])
 
   return (
     <div className="wave" ref={wrapRef}>

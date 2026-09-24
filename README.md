@@ -189,6 +189,17 @@ when it draws. The layers' saturation and brightness stay CSS filters (they
 move no pixels), so a host `filter` on `.wave-base` / `.wave-bright` still
 replaces those — but no longer removes the glow, which is in the bitmap now.
 
+A redraw is the one thing here that costs per event. A new window onto the
+audio — a pan, a zoom, a resize — redraws every lane: one pass over the
+envelope per lane, a column per pixel of lane width, with both layers stamped
+from it (two passes where they cannot share one: a device pixel ratio at
+which the 4px pad is not a whole number of bitmap pixels, or a stylesheet
+that sizes the two canvases apart). A host that pans a zoomed view on every
+wheel event pays that pass per event and per lane, so it should not hand
+`Waveform` more new windows than it has frames to show them in — SingZ
+applies a wheel event at once when nothing is waiting, and holds the ones
+that follow for the next frame, where they land together.
+
 The room — two ambient lamps and a film grain — is painted on `body::before`
 and `body::after` at `:where()` specificity. A host with its own `body::before`
 keeps it; a host that wants no room sets `--sz-ambient-warm` /
