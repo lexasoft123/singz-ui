@@ -809,7 +809,11 @@ input:focus-visible {
  *
  * --p is why progress costs no canvas redraws: the bright layer is the same
  * waveform clipped at the playhead, so moving the playhead is one CSS
- * variable write per frame rather than a repaint per lane.
+ * variable write rather than a repaint per lane. It is not free, though: a
+ * re-clip damages the layer's whole visible part, so the played part of every
+ * lane is recomposited each time --p moves. A host drawing its own playhead
+ * line should move that every frame and --p on a clock (SingZ: 4 Hz while
+ * the song rolls, exactly on pause, seek and zoom).
  */
 
 .slider {
@@ -867,9 +871,24 @@ input:focus-visible {
   /* Full colour, not 85% of it: opacity over a near-black ground reads as
      desaturation, which is what kept these looking washed however far the
      number was raised. Saturation now carries the vividness and the GLOW
-     carries played-vs-unplayed, so neither has to be paid for with alpha. */
-  filter: saturate(1.15) drop-shadow(0 0 2px color-mix(in srgb, var(--stem, #fff) 20%, transparent));
+     carries played-vs-unplayed, so neither has to be paid for with alpha.
+     The glow — 2px, the stem at 20% — is drawn into the canvas by Waveform,
+     NOT written here: a drop-shadow is a filter that moves pixels, so as CSS
+     it made the compositor redraw the whole lane whenever anything crossed
+     it, and a playhead crosses every lane all the time. Saturation moves no
+     pixels and stays. */
+  filter: saturate(1.15);
   transition: opacity 0.25s;
+}
+
+/* The resting canvas reaches 4px past the lane on every side (Waveform's
+   BASE_PAD_PX draws the envelope back inside), so the glow drawn into it can
+   spill beyond the lane as the CSS one did. Two classes, to outrank
+   `.wave canvas`. */
+.wave .wave-base {
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
 }
 
 .wave-bright {
@@ -879,9 +898,10 @@ input:focus-visible {
      so any glow it has that the resting layer lacks travels with it as a
      bloom — which is seen as the lanes pulsing rather than as progress. The
      halo is therefore the same radius and nearly the same strength on both
-     sides, and nothing swells as the edge goes past. */
-  filter: saturate(1.15) brightness(1.06)
-    drop-shadow(0 0 2px color-mix(in srgb, var(--stem, #fff) 26%, transparent));
+     sides (26% here, drawn into the canvas like the resting layer's), and
+     nothing swells as the edge goes past. Its clip-path has always clipped
+     its glow at its own box, so this canvas needs no room to spill. */
+  filter: saturate(1.15) brightness(1.06);
   transition: opacity 0.25s;
 }
 

@@ -4,6 +4,55 @@ import { fitCanvas } from '../hooks/useCanvas2D.js'
 /** Below this many visible envelope buckets, draw from raw samples instead. */
 const RAW_THRESHOLD_BUCKETS = 600
 
+/**
+ * Each layer's glow: 2px of the lane's `--stem` colour (white where the host
+ * sets none) at this share of its alpha — the resting layer a little under
+ * the played one, so played reads as played without its edge blooming.
+ *
+ * It is drawn INTO the bitmap, once per redraw, and never as a CSS filter. A
+ * `drop-shadow` on the element moves pixels, so the compositor widens any
+ * damage touching the layer to the whole layer — and the host's playhead
+ * crosses every lane on every device pixel it moves. As a CSS filter this one
+ * glow cost a weak Intel iGPU most of its frame budget while a song played;
+ * in the bitmap it costs one filtered draw per redraw. The layers' colour
+ * (saturate, brightness) stays in the stylesheet: measured, a canvas filter
+ * does not compute those the way the compositor does, and colour moves no
+ * pixels, so it costs nothing there.
+ */
+const GLOW_BLUR_PX = 2
+const GLOW = { base: 0.2, bright: 0.26 } as const
+type Layer = keyof typeof GLOW
+/**
+ * How far the resting layer's canvas reaches past the lane on every side
+ * (audio.css gives `.wave-base` the same inset): the CSS glow spilled about
+ * 4px beyond the element's box, and a glow drawn into the bitmap would stop
+ * dead at its edge. The played layer needs none — its clip-path always
+ * clipped its glow at its own box.
+ */
+const BASE_PAD_PX = 4
+
+/** One scratch surface, reused: the envelope is drawn here, then stamped
+ *  onto the lane with its glow. Redraws are synchronous and one at a time. */
+let scratch: OffscreenCanvas | HTMLCanvasElement | null = null
+function scratchContext(width: number, height: number): OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D | null {
+  if (!scratch) {
+    scratch = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(width, height) : document.createElement('canvas')
+  }
+  // Resizing also clears it.
+  scratch.width = width
+  scratch.height = height
+  return scratch.getContext('2d') as OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D | null
+}
+
+/** The glow the stylesheet used to write —
+ *  `drop-shadow(0 0 2px color-mix(in srgb, var(--stem, #fff) N%, transparent))`
+ *  — with `--stem` resolved here, because a canvas filter has no cascade to
+ *  read it from. Lengths are in bitmap pixels: the stamp is drawn untransformed. */
+function glowFilter(canvas: HTMLCanvasElement, layer: Layer, dpr: number): string {
+  const stem = getComputedStyle(canvas).getPropertyValue('--stem').trim() || '#fff'
+  return `drop-shadow(0 0 ${GLOW_BLUR_PX * dpr}px color-mix(in srgb, ${stem} ${Math.round(GLOW[layer] * 100)}%, transparent))`
+}
+
 function drawWave(
   canvas: HTMLCanvasElement,
   peaks: Float32Array,
@@ -12,12 +61,48 @@ function drawWave(
   color: string,
   viewStart: number,
   viewEnd: number,
+  layer: Layer,
   bucketColors?: readonly string[]
 ): void {
   const fit = fitCanvas(canvas)
   if (!fit) return
-  const { ctx, w, h } = fit
+  const { ctx, dpr } = fit
+  // The resting layer's canvas is larger than the lane by BASE_PAD_PX on each
+  // side; the envelope is drawn in the lane's own box inside it.
+  const pad = layer === 'base' ? BASE_PAD_PX : 0
+  const w = fit.w - 2 * pad
+  const h = fit.h - 2 * pad
+  if (w <= 0 || h <= 0) return
+  const sctx = scratchContext(canvas.width, canvas.height)
+  if (!sctx || !('filter' in ctx)) {
+    // No second surface or no canvas filters: the envelope without its glow
+    // beats no envelope at all.
+    ctx.translate(pad, pad)
+    drawEnvelope(ctx, w, h, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors)
+    return
+  }
+  sctx.setTransform(dpr, 0, 0, dpr, pad * dpr, pad * dpr)
+  drawEnvelope(sctx, w, h, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors)
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.filter = glowFilter(canvas, layer, dpr)
+  ctx.drawImage(sctx.canvas, 0, 0)
+  ctx.restore()
+}
 
+/** The waveform itself, in CSS units on a context already scaled to them. */
+function drawEnvelope(
+  ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  peaks: Float32Array,
+  buffer: AudioBuffer | null,
+  scale: number,
+  color: string,
+  viewStart: number,
+  viewEnd: number,
+  bucketColors?: readonly string[]
+): void {
   const grad = ctx.createLinearGradient(0, 0, 0, h)
   grad.addColorStop(0, color)
   grad.addColorStop(0.5, color)
@@ -133,10 +218,11 @@ export interface WaveformProps {
 }
 
 /**
- * Two stacked copies of the same waveform: a dim base layer and a bright
+ * Two stacked copies of the same waveform: a resting base layer and a bright
  * "played" layer clipped by the shared `--p` CSS variable, which the host's
- * playhead loop writes once per frame. Progress therefore costs no canvas
- * redraws at all — see audio.css for that contract.
+ * playhead loop writes. Progress therefore costs no canvas redraws — but a
+ * re-clip still damages the layer's whole visible part, so a host should move
+ * `--p` on a clock rather than every frame; see audio.css for that contract.
  */
 export function Waveform({
   peaks,
@@ -154,9 +240,9 @@ export function Waveform({
   useLayoutEffect(() => {
     const redraw = (): void => {
       if (baseRef.current)
-        drawWave(baseRef.current, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors)
+        drawWave(baseRef.current, peaks, buffer, scale, color, viewStart, viewEnd, 'base', bucketColors)
       if (brightRef.current)
-        drawWave(brightRef.current, peaks, buffer, scale, color, viewStart, viewEnd, bucketColors)
+        drawWave(brightRef.current, peaks, buffer, scale, color, viewStart, viewEnd, 'bright', bucketColors)
     }
     redraw()
     const ro = new ResizeObserver(redraw)

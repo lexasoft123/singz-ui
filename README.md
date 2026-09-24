@@ -155,9 +155,22 @@ Two variables the kit reads but never sets:
 
 `--p` is why progress costs no canvas redraws: `Waveform`'s bright layer is
 the same waveform clipped at the playhead, so moving it is one CSS variable
-write per frame rather than a repaint per lane. `.slider.seek` fills its
-track from the same variable, so a scrub bar and a waveform cannot disagree
-about where the playhead is.
+write rather than a repaint per lane. `.slider.seek` fills its track from the
+same variable, so a scrub bar and a waveform cannot disagree about where the
+playhead is.
+
+A re-clip is not free, though: it damages the layer's whole visible part, so
+every move of `--p` recomposites the played part of every lane. A host that
+draws its own playhead line should move the line every frame and `--p` on a
+clock — SingZ moves it at 4 Hz while a song rolls and exactly on pause, seek
+and zoom, which is invisible on a played edge that is only a brightness step.
+For the same reason `Waveform` draws its 2px lane glow into the canvas once
+per redraw instead of as a CSS `drop-shadow`: a drop-shadow moves pixels, so
+the compositor widens any damage touching the layer to the whole layer.
+`--stem` is still where that glow takes its colour from, read from the canvas
+when it draws. The layers' saturation and brightness stay CSS filters (they
+move no pixels), so a host `filter` on `.wave-base` / `.wave-bright` still
+replaces those — but no longer removes the glow, which is in the bitmap now.
 
 The room — two ambient lamps and a film grain — is painted on `body::before`
 and `body::after` at `:where()` specificity. A host with its own `body::before`
