@@ -165,10 +165,12 @@ upper-cased (`toLocaleUpperCase`), the way the English always was.
 
 ## Contracts the host fulfils
 
-Two variables the kit reads but never sets:
+Variables the kit reads but never sets:
 
 - `--stem` — a lane's colour, set inline per lane
 - `--p` — playback progress as a percentage, written by the host's rAF loop
+- `--p-edge` — optional: the exact playhead, for a host that moves `--p` on a
+  clock (below)
 
 `--p` is why progress costs no canvas redraws: `Waveform`'s bright layer is
 the same waveform clipped at the playhead, so moving it is one CSS variable
@@ -178,9 +180,22 @@ playhead is.
 
 A re-clip is not free, though: it damages the layer's whole visible part, so
 every move of `--p` recomposites the played part of every lane. A host that
-draws its own playhead line should move the line every frame and `--p` on a
-clock — SingZ moves it at 4 Hz while a song rolls and exactly on pause, seek
-and zoom, which is invisible on a played edge that is only a brightness step.
+draws its own playhead line should move `--p` on a clock and write the line's
+position to `--p-edge` every frame, on the `.wave-edge` canvases themselves
+(on an ancestor, each frame would restyle everything under it). `.wave-edge`
+is a copy of the bright layer shown only from `--p` to `--p-edge`, so the
+played edge sits exactly on the line while a frame damages only the sliver
+between the two. Quantize both to whole device pixels of the window: every
+clip end is nudged a tenth of a pixel inward (the bright layer ends short of
+`--p`, the edge starts past it and ends short of `--p-edge`), so where the two
+fall on pixel boundaries the compositor's outward rounding gives each layer
+exactly its own columns — off a boundary, two layers claim the same column
+(a bright seam), or the edge paints one column past where the bright layer
+alone would stop. SingZ catches `--p` up once
+the sliver is 64 device pixels wide, and no more than four times a second;
+without `--p-edge` the sliver is empty and `--p` is the played edge, as it was
+before 1.9.0 (when the edge then trailed a zoomed playhead by a visible
+finger's width).
 For the same reason `Waveform` draws its 2px lane glow into the canvas once
 per redraw instead of as a CSS `drop-shadow`: a drop-shadow moves pixels, so
 the compositor widens any damage touching the layer to the whole layer.

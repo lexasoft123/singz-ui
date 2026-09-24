@@ -120,10 +120,26 @@ function drawLayers(base, bright, env) {
         drawLayer(bright, fr, env, 'bright');
     return Boolean(fb && fr);
 }
-/** The layout a redraw is made for: both canvases' boxes, and the ratio that
+/**
+ * The played layer's leading edge: the played canvas copied as it stands,
+ * which the stylesheet shows only between `--p` and the host's `--p-edge`
+ * (see audio.css). A copy, not a third stamp of the scratch: the played bitmap
+ * already holds the finished pixels, glow and all, and a same-size draw at the
+ * origin reproduces them for one unfiltered operation. Returns whether it drew.
+ */
+function copyEdge(bright, edge) {
+    const fe = fitCanvas(edge);
+    if (!fe || bright.width === 0 || bright.height === 0)
+        return false;
+    fe.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    fe.ctx.drawImage(bright, 0, 0, edge.width, edge.height);
+    return true;
+}
+/** The layout a redraw is made for: every canvas's box, and the ratio that
  *  turns them into bitmaps. The same answer twice means the same drawing. */
-function drawnFor(base, bright) {
-    return `${base.clientWidth}x${base.clientHeight} ${bright.clientWidth}x${bright.clientHeight} ${window.devicePixelRatio || 1}`;
+function drawnFor(base, bright, edge) {
+    const box = (c) => `${c.clientWidth}x${c.clientHeight}`;
+    return `${box(base)} ${box(bright)} ${box(edge)} ${window.devicePixelRatio || 1}`;
 }
 /** The waveform itself, in CSS units on a context already scaled to them. */
 function drawEnvelope(ctx, w, h, env) {
@@ -245,15 +261,19 @@ function drawColumns(ctx, w, h, env) {
     }
 }
 /**
- * Two stacked copies of the same waveform: a resting base layer and a bright
+ * Stacked copies of the same waveform: a resting base layer, and a bright
  * "played" layer clipped by the shared `--p` CSS variable, which the host's
  * playhead loop writes. Progress therefore costs no canvas redraws — but a
  * re-clip still damages the layer's whole visible part, so a host should move
- * `--p` on a clock rather than every frame; see audio.css for that contract.
+ * `--p` on a clock rather than every frame. The third canvas is the played
+ * layer again, shown only from `--p` to `--p-edge`: a host that writes
+ * `--p-edge` every frame gets a played edge exactly at its playhead while the
+ * big re-clip stays on the clock; see audio.css for that contract.
  */
 export function Waveform({ peaks, buffer, scale, color, viewStart, viewEnd, bucketColors }) {
     const baseRef = useRef(null);
     const brightRef = useRef(null);
+    const edgeRef = useRef(null);
     const wrapRef = useRef(null);
     // The current redraw, the layout it last drew for, and the size observer.
     // The observer lives as long as the element and calls whichever redraw is
@@ -269,9 +289,11 @@ export function Waveform({ peaks, buffer, scale, color, viewStart, viewEnd, buck
         const redraw = () => {
             const base = baseRef.current;
             const bright = brightRef.current;
-            if (!base || !bright)
+            const edge = edgeRef.current;
+            if (!base || !bright || !edge)
                 return;
-            drawnRef.current = drawLayers(base, bright, env) ? drawnFor(base, bright) : '';
+            const drew = drawLayers(base, bright, env);
+            drawnRef.current = copyEdge(bright, edge) && drew ? drawnFor(base, bright, edge) : '';
         };
         redrawRef.current = redraw;
         redraw();
@@ -295,7 +317,8 @@ export function Waveform({ peaks, buffer, scale, color, viewStart, viewEnd, buck
         const ro = new ResizeObserver(() => {
             const base = baseRef.current;
             const bright = brightRef.current;
-            if (base && bright && drawnRef.current === drawnFor(base, bright))
+            const edge = edgeRef.current;
+            if (base && bright && edge && drawnRef.current === drawnFor(base, bright, edge))
                 return;
             redrawRef.current();
         });
@@ -306,5 +329,5 @@ export function Waveform({ peaks, buffer, scale, color, viewStart, viewEnd, buck
             observerRef.current = null;
         };
     }, []);
-    return (_jsxs("div", { className: "wave", ref: wrapRef, children: [_jsx("canvas", { ref: baseRef, className: "wave-base" }), _jsx("canvas", { ref: brightRef, className: "wave-bright" })] }));
+    return (_jsxs("div", { className: "wave", ref: wrapRef, children: [_jsx("canvas", { ref: baseRef, className: "wave-base" }), _jsx("canvas", { ref: brightRef, className: "wave-bright" }), _jsx("canvas", { ref: edgeRef, className: "wave-bright wave-edge" })] }));
 }

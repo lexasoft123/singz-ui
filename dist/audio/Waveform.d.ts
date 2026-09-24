@@ -28,10 +28,13 @@ export interface WaveformProps {
     bucketColors?: readonly string[];
 }
 /**
- * Two stacked copies of the same waveform: a resting base layer and a bright
+ * Stacked copies of the same waveform: a resting base layer, and a bright
  * "played" layer clipped by the shared `--p` CSS variable, which the host's
  * playhead loop writes. Progress therefore costs no canvas redraws — but a
  * re-clip still damages the layer's whole visible part, so a host should move
- * `--p` on a clock rather than every frame; see audio.css for that contract.
+ * `--p` on a clock rather than every frame. The third canvas is the played
+ * layer again, shown only from `--p` to `--p-edge`: a host that writes
+ * `--p-edge` every frame gets a played edge exactly at its playhead while the
+ * big re-clip stays on the clock; see audio.css for that contract.
  */
 export declare function Waveform({ peaks, buffer, scale, color, viewStart, viewEnd, bucketColors }: WaveformProps): React.JSX.Element;

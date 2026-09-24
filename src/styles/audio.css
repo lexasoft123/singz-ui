@@ -10,19 +10,25 @@
  */
 
 /*
- * Two contracts the host fulfils, neither of which is a token:
+ * Contracts the host fulfils, none of which is a token:
  *
- *   --stem  this lane's colour, set inline per lane
- *   --p     playback progress as a percentage, written by the host's rAF
- *           loop straight onto the element's style
+ *   --stem    this lane's colour, set inline per lane
+ *   --p       playback progress as a percentage, written by the host's rAF
+ *             loop straight onto the element's style
+ *   --p-edge  optional: the exact playhead, as a percentage, for a host that
+ *             moves --p on a clock (below)
  *
  * --p is why progress costs no canvas redraws: the bright layer is the same
  * waveform clipped at the playhead, so moving the playhead is one CSS
  * variable write rather than a repaint per lane. It is not free, though: a
  * re-clip damages the layer's whole visible part, so the played part of every
  * lane is recomposited each time --p moves. A host drawing its own playhead
- * line should move that every frame and --p on a clock (SingZ: 4 Hz while
- * the song rolls, exactly on pause, seek and zoom).
+ * line should therefore move --p on a clock, and write the line's position
+ * to --p-edge every frame instead: `.wave-edge` shows the bright layer only
+ * between the two, so the played edge sits exactly on the line while each
+ * frame damages just that sliver. Write --p-edge on the `.wave-edge` canvases
+ * themselves — on an ancestor, every frame would restyle everything under it.
+ * With no --p-edge the sliver is empty and --p alone is the played edge.
  */
 
 .slider {
@@ -101,7 +107,13 @@
 }
 
 .wave-bright {
-  clip-path: inset(0 calc(100% - var(--p, 0%)) 0 0);
+  /* Ends a tenth of a pixel short of --p, and `.wave-edge` starts a tenth
+     past it: the compositor rounds a clip OUTWARD to whole device pixels, so
+     two clips meeting exactly on --p would both claim the column it falls in
+     (a float hair off the pixel is enough) and the doubled glow shows there
+     as a bright seam. Nudged apart, a --p on a device pixel boundary rounds
+     to the same boundary from both sides. */
+  clip-path: inset(0 calc(100% - var(--p, 0%) + 0.1px) 0 0);
   /* Played reads as played by a touch of brightness, NOT by a bigger halo.
      This layer is clipped at the playhead and that clip moves every frame,
      so any glow it has that the resting layer lacks travels with it as a
@@ -112,4 +124,22 @@
      its glow at its own box, so this canvas needs no room to spill. */
   filter: saturate(1.15) brightness(1.06);
   transition: opacity 0.25s;
+}
+
+/* The played layer's leading edge: a copy of `.wave-bright` (it carries that
+   class as well, so it takes the same filters and any host rule written for
+   the played layer) shown only from --p to --p-edge. --p moves on the host's
+   clock and re-clips the whole played part; --p-edge moves every frame and
+   re-clips only this sliver, so the edge keeps up with the playhead for the
+   cost of the pixels between the two. Where --p-edge is behind --p the insets
+   overlap and nothing shows. Both of its ends are nudged a tenth of a pixel
+   inward, for the reason `.wave-bright` gives: its start meets the played
+   layer at --p, and its end must stop where the played layer would stop with
+   no sliver at all, or a --p-edge a float hair past a pixel boundary paints
+   one more column than the same position does once --p catches up. Seamless
+   only where both fall on device pixel boundaries, so a host writing --p-edge
+   should quantize both to whole device pixels of the window. Three classes,
+   to outrank `.wave-bright` and a host's `.lane .wave-bright`. */
+.wave .wave-bright.wave-edge {
+  clip-path: inset(0 calc(100% - var(--p-edge, var(--p, 0%)) + 0.1px) 0 calc(var(--p, 0%) + 0.1px));
 }
