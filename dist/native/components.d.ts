@@ -112,6 +112,8 @@ export interface ReferenceControlsLabels {
     readonly volumeValue: (percent: number) => string;
     readonly decrease: string;
     readonly increase: string;
+    /** The test button's label while the tone plays. */
+    readonly playing: string;
 }
 export declare function ReferenceControls(props: ReferenceControlsProps): React.JSX.Element;
 export interface PitchTargetItem {

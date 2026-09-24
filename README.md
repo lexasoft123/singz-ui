@@ -155,7 +155,7 @@ in another language passes its own — anything left out stays English:
 ```tsx
 <ReferenceControls {...props} labels={{ title: t('refSound'), pitchWindow: t('pitchWindow'),
   volume: t('refVolume'), volumeValue: (p) => t('percent', { p }),
-  decrease: t('lower'), increase: t('raise') }} />
+  decrease: t('lower'), increase: t('raise'), playing: t('playing') }} />
 <PitchMeter {...props} labels={{ flat: t('flat'), sharp: t('sharp'),
   youAreSinging: t('youAreSinging'), progress: (instruction, p) => t('holdProgress', { instruction, p }) }} />
 ```

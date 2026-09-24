@@ -235,6 +235,8 @@ export interface ReferenceControlsLabels {
   readonly volumeValue: (percent: number) => string
   readonly decrease: string
   readonly increase: string
+  /** The test button's label while the tone plays. */
+  readonly playing: string
 }
 
 const REFERENCE_LABELS: ReferenceControlsLabels = {
@@ -243,7 +245,8 @@ const REFERENCE_LABELS: ReferenceControlsLabels = {
   volume: 'Reference sound volume',
   volumeValue: (percent) => `${percent} percent`,
   decrease: 'Decrease reference volume',
-  increase: 'Increase reference volume'
+  increase: 'Increase reference volume',
+  playing: 'Playing…'
 }
 
 export function ReferenceControls(props: ReferenceControlsProps): React.JSX.Element {
@@ -257,7 +260,7 @@ export function ReferenceControls(props: ReferenceControlsProps): React.JSX.Elem
       <View style={s.referenceHeader}>
         <View><Text style={[s.utilityLabel, { color: theme.dim }]}>{L.title.toLocaleUpperCase()}</Text><Text style={[s.referenceValue, { color: theme.text }]}>{props.volumePercent}%</Text></View>
         <Pressable accessibilityRole="button" accessibilityLabel={props.testLabel} disabled={props.testing} onPress={props.onTest} style={({ pressed }) => [s.referenceTest, { backgroundColor: theme.accent }, (pressed || props.testing) && s.pressed]}>
-          {props.testIcon}<Text style={[s.referenceTestText, { color: theme.accentInk }]}>{props.testing ? 'Playing…' : props.testLabel}</Text>
+          {props.testIcon}<Text style={[s.referenceTestText, { color: theme.accentInk }]}>{props.testing ? L.playing : props.testLabel}</Text>
         </Pressable>
       </View>
       <View style={s.referenceVolumeRow}>
