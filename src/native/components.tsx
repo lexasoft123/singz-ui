@@ -218,6 +218,32 @@ export interface ReferenceControlsProps {
   readonly increaseDisabled?: boolean
   readonly hint?: string
   readonly pitchWindow?: { readonly value: number; readonly options: readonly number[]; readonly onChange: (value: number) => void }
+  /**
+   * The words on the panel, for a host that speaks another language. The kit
+   * carries English only as the default; every label here is the host's.
+   * `title` and `pitchWindow` are shown upper-cased, as the English is.
+   */
+  readonly labels?: Partial<ReferenceControlsLabels>
+}
+
+export interface ReferenceControlsLabels {
+  readonly title: string
+  readonly pitchWindow: string
+  /** Screen reader: the panel as a whole. */
+  readonly volume: string
+  /** Screen reader: the panel's value, e.g. "65 percent". */
+  readonly volumeValue: (percent: number) => string
+  readonly decrease: string
+  readonly increase: string
+}
+
+const REFERENCE_LABELS: ReferenceControlsLabels = {
+  title: 'Reference sound',
+  pitchWindow: 'Pitch window',
+  volume: 'Reference sound volume',
+  volumeValue: (percent) => `${percent} percent`,
+  decrease: 'Decrease reference volume',
+  increase: 'Increase reference volume'
 }
 
 export function ReferenceControls(props: ReferenceControlsProps): React.JSX.Element {
@@ -225,21 +251,22 @@ export function ReferenceControls(props: ReferenceControlsProps): React.JSX.Elem
   const position = Math.max(0, Math.min(1, props.volumePosition))
   const minPercent = props.volumeMinPercent ?? 0
   const maxPercent = props.volumeMaxPercent ?? 100
+  const L = { ...REFERENCE_LABELS, ...props.labels }
   return (
-    <GlassSurface radius={25} accessibilityRole="adjustable" accessibilityLabel="Reference sound volume" accessibilityValue={{ min: minPercent, max: maxPercent, now: props.volumePercent, text: `${props.volumePercent} percent` }} style={s.referencePanel}>
+    <GlassSurface radius={25} accessibilityRole="adjustable" accessibilityLabel={L.volume} accessibilityValue={{ min: minPercent, max: maxPercent, now: props.volumePercent, text: L.volumeValue(props.volumePercent) }} style={s.referencePanel}>
       <View style={s.referenceHeader}>
-        <View><Text style={[s.utilityLabel, { color: theme.dim }]}>REFERENCE SOUND</Text><Text style={[s.referenceValue, { color: theme.text }]}>{props.volumePercent}%</Text></View>
+        <View><Text style={[s.utilityLabel, { color: theme.dim }]}>{L.title.toLocaleUpperCase()}</Text><Text style={[s.referenceValue, { color: theme.text }]}>{props.volumePercent}%</Text></View>
         <Pressable accessibilityRole="button" accessibilityLabel={props.testLabel} disabled={props.testing} onPress={props.onTest} style={({ pressed }) => [s.referenceTest, { backgroundColor: theme.accent }, (pressed || props.testing) && s.pressed]}>
           {props.testIcon}<Text style={[s.referenceTestText, { color: theme.accentInk }]}>{props.testing ? 'Playing…' : props.testLabel}</Text>
         </Pressable>
       </View>
       <View style={s.referenceVolumeRow}>
-        <RoundAction label="Decrease reference volume" icon={<Text style={[s.referenceStepText, { color: theme.text }]}>−</Text>} onPress={props.onDecrease} size={48} disabled={props.decreaseDisabled} />
+        <RoundAction label={L.decrease} icon={<Text style={[s.referenceStepText, { color: theme.text }]}>−</Text>} onPress={props.onDecrease} size={48} disabled={props.decreaseDisabled} />
         <View style={[s.referenceTrack, { backgroundColor: theme.controlLine }]}><View style={[s.referenceFill, { width: `${Math.round(position * 100)}%`, backgroundColor: theme.accent }]} /></View>
-        <RoundAction label="Increase reference volume" icon={<Text style={[s.referenceStepText, { color: theme.text }]}>+</Text>} onPress={props.onIncrease} size={48} disabled={props.increaseDisabled} />
+        <RoundAction label={L.increase} icon={<Text style={[s.referenceStepText, { color: theme.text }]}>+</Text>} onPress={props.onIncrease} size={48} disabled={props.increaseDisabled} />
       </View>
       {props.hint && <Text style={[s.referenceHint, { color: theme.dim }]}>{props.hint}</Text>}
-      {props.pitchWindow && <><Hairline /><View style={s.pitchWindow}><View><Text style={[s.utilityLabel, { color: theme.dim }]}>PITCH WINDOW</Text><Text style={[s.pitchWindowValue, { color: theme.text }]}>±{props.pitchWindow.value}¢</Text></View><View style={s.choiceRow}>{props.pitchWindow.options.map((value) => <ChoiceChip key={value} label={`±${value}¢`} selected={props.pitchWindow?.value === value} onPress={() => props.pitchWindow?.onChange(value)} />)}</View></View></>}
+      {props.pitchWindow && <><Hairline /><View style={s.pitchWindow}><View><Text style={[s.utilityLabel, { color: theme.dim }]}>{L.pitchWindow.toLocaleUpperCase()}</Text><Text style={[s.pitchWindowValue, { color: theme.text }]}>±{props.pitchWindow.value}¢</Text></View><View style={s.choiceRow}>{props.pitchWindow.options.map((value) => <ChoiceChip key={value} label={`±${value}¢`} selected={props.pitchWindow?.value === value} onPress={() => props.pitchWindow?.onChange(value)} />)}</View></View></>}
     </GlassSurface>
   )
 }
@@ -284,21 +311,40 @@ export interface PitchMeterProps {
   readonly reading: string
   readonly accessibilityReading?: string
   readonly hint: string
+  /** The meter's own words, for a host in another language (English by
+   *  default; `flat`, `sharp` and `youAreSinging` are shown upper-cased). */
+  readonly labels?: Partial<PitchMeterLabels>
+}
+
+export interface PitchMeterLabels {
+  readonly flat: string
+  readonly sharp: string
+  readonly youAreSinging: string
+  /** Screen reader: the hold progress, e.g. "Hold C4. 40 percent complete." */
+  readonly progress: (instruction: string, percent: number) => string
+}
+
+const METER_LABELS: PitchMeterLabels = {
+  flat: 'Flat',
+  sharp: 'Sharp',
+  youAreSinging: 'You are singing',
+  progress: (instruction, percent) => `${instruction}. ${percent} percent complete.`
 }
 
 export function PitchMeter(props: PitchMeterProps): React.JSX.Element {
   const theme = useNativeTheme()
+  const L = { ...METER_LABELS, ...props.labels }
   const x = props.cents === null ? 50 : Math.max(6, Math.min(94, 50 + props.cents * 0.8))
   return (
     <View style={s.meterWrap}>
-      <View style={s.meterLabels}><Text style={[s.meterEdge, { color: theme.dim }]}>FLAT</Text><Text style={[s.meterCenterLabel, { color: theme.accent }]}>±{props.pitchWindowCents}¢</Text><Text style={[s.meterEdge, { color: theme.dim }]}>SHARP</Text></View>
+      <View style={s.meterLabels}><Text style={[s.meterEdge, { color: theme.dim }]}>{L.flat.toLocaleUpperCase()}</Text><Text style={[s.meterCenterLabel, { color: theme.accent }]}>±{props.pitchWindowCents}¢</Text><Text style={[s.meterEdge, { color: theme.dim }]}>{L.sharp.toLocaleUpperCase()}</Text></View>
       <GlassSurface radius={30} elevation="none" accessibilityLabel={props.accessibilityReading ?? props.reading} style={s.meter}>
         <View style={[s.targetZone, { left: `${50 - props.pitchWindowCents * 0.8}%`, width: `${props.pitchWindowCents * 1.6}%`, backgroundColor: theme.accentSoft }]} />
         <View style={[s.meterCenter, { backgroundColor: theme.accent }]} />
         {props.cents !== null && <View style={[s.pitchMarker, { left: `${x}%`, backgroundColor: props.centered ? theme.accent : theme.text, borderColor: props.centered ? theme.text : theme.lineStrong, shadowColor: theme.accent }]} />}
       </GlassSurface>
-      <View style={s.livePitchRow}><View><Text style={[s.livePitchLabel, { color: theme.dim }]}>YOU ARE SINGING</Text><Text accessibilityLiveRegion="polite" style={[s.livePitchNote, { color: theme.text }]}>{props.detectedNote ?? '—'}</Text></View><Text style={[s.meterReading, { color: theme.text }]}>{props.reading}</Text></View>
-      <View accessibilityLabel={`${props.instruction}. ${Math.round(props.progress * 100)} percent complete.`} style={[s.progressTrack, { backgroundColor: theme.line }]}><View style={[s.progressFill, { width: `${Math.round(Math.max(0, Math.min(1, props.progress)) * 100)}%`, backgroundColor: theme.accent }]} /></View>
+      <View style={s.livePitchRow}><View><Text style={[s.livePitchLabel, { color: theme.dim }]}>{L.youAreSinging.toLocaleUpperCase()}</Text><Text accessibilityLiveRegion="polite" style={[s.livePitchNote, { color: theme.text }]}>{props.detectedNote ?? '—'}</Text></View><Text style={[s.meterReading, { color: theme.text }]}>{props.reading}</Text></View>
+      <View accessibilityLabel={L.progress(props.instruction, Math.round(props.progress * 100))} style={[s.progressTrack, { backgroundColor: theme.line }]}><View style={[s.progressFill, { width: `${Math.round(Math.max(0, Math.min(1, props.progress)) * 100)}%`, backgroundColor: theme.accent }]} /></View>
       <Text accessibilityLiveRegion="polite" style={[s.meterInstruction, { color: props.centered ? theme.accent : theme.dim }]}>{props.instruction}</Text>
       <Text style={[s.meterHint, { color: theme.dim }]}>{props.hint}</Text>
     </View>

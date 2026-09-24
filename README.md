@@ -146,6 +146,23 @@ Keyboard: arrows move, Enter or Space picks, Escape and Tab leave and hand
 focus back to the pill. Escape is negotiated with `Modal`: an open menu inside
 a dialog takes the press and the dialog stays.
 
+## Words the native components show
+
+The kit carries no strings of its own beyond an English default. The two
+native training components that draw words take a `labels` prop, so a host
+in another language passes its own — anything left out stays English:
+
+```tsx
+<ReferenceControls {...props} labels={{ title: t('refSound'), pitchWindow: t('pitchWindow'),
+  volume: t('refVolume'), volumeValue: (p) => t('percent', { p }),
+  decrease: t('lower'), increase: t('raise') }} />
+<PitchMeter {...props} labels={{ flat: t('flat'), sharp: t('sharp'),
+  youAreSinging: t('youAreSinging'), progress: (instruction, p) => t('holdProgress', { instruction, p }) }} />
+```
+
+`title`, `pitchWindow`, `flat`, `sharp` and `youAreSinging` are shown
+upper-cased (`toLocaleUpperCase`), the way the English always was.
+
 ## Contracts the host fulfils
 
 Two variables the kit reads but never sets:

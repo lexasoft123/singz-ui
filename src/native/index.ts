@@ -27,8 +27,10 @@ export {
   TransportDock,
   type ChoiceChipProps,
   type GlassSurfaceProps,
+  type PitchMeterLabels,
   type PitchMeterProps,
   type PitchTargetItem,
+  type ReferenceControlsLabels,
   type ReferenceControlsProps,
   type TransportItem
 } from './components.js'

@@ -96,6 +96,22 @@ export interface ReferenceControlsProps {
         readonly options: readonly number[];
         readonly onChange: (value: number) => void;
     };
+    /**
+     * The words on the panel, for a host that speaks another language. The kit
+     * carries English only as the default; every label here is the host's.
+     * `title` and `pitchWindow` are shown upper-cased, as the English is.
+     */
+    readonly labels?: Partial<ReferenceControlsLabels>;
+}
+export interface ReferenceControlsLabels {
+    readonly title: string;
+    readonly pitchWindow: string;
+    /** Screen reader: the panel as a whole. */
+    readonly volume: string;
+    /** Screen reader: the panel's value, e.g. "65 percent". */
+    readonly volumeValue: (percent: number) => string;
+    readonly decrease: string;
+    readonly increase: string;
 }
 export declare function ReferenceControls(props: ReferenceControlsProps): React.JSX.Element;
 export interface PitchTargetItem {
@@ -124,6 +140,16 @@ export interface PitchMeterProps {
     readonly reading: string;
     readonly accessibilityReading?: string;
     readonly hint: string;
+    /** The meter's own words, for a host in another language (English by
+     *  default; `flat`, `sharp` and `youAreSinging` are shown upper-cased). */
+    readonly labels?: Partial<PitchMeterLabels>;
+}
+export interface PitchMeterLabels {
+    readonly flat: string;
+    readonly sharp: string;
+    readonly youAreSinging: string;
+    /** Screen reader: the hold progress, e.g. "Hold C4. 40 percent complete." */
+    readonly progress: (instruction: string, percent: number) => string;
 }
 export declare function PitchMeter(props: PitchMeterProps): React.JSX.Element;
 export interface TransportItem {
