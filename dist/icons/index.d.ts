@@ -1,4 +1,4 @@
-import React, { type CSSProperties } from 'react';
+import { type CSSProperties, type JSX } from 'react';
 import { type IconName } from './artwork.js';
 export type { IconName } from './artwork.js';
 export interface IconProps {
@@ -10,4 +10,4 @@ export interface IconProps {
     style?: CSSProperties;
 }
 /** Decorative unless a label is supplied. Icon-only buttons still need their own accessible name. */
-export declare function Icon({ name, size, color, label, className, style }: IconProps): React.JSX.Element;
+export declare function Icon({ name, size, color, label, className, style }: IconProps): JSX.Element;
