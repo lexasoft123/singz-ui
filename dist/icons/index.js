@@ -1,0 +1,6 @@
+import React, {} from 'react';
+import { iconArtwork } from './artwork.js';
+/** Decorative unless a label is supplied. Icon-only buttons still need their own accessible name. */
+export function Icon({ name, size = 24, color = 'currentColor', label, className, style }) {
+    return React.createElement('svg', { width: size, height: size, viewBox: '0 0 28 28', fill: 'none', stroke: color, color, strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', role: label ? 'img' : undefined, 'aria-label': label, 'aria-hidden': label ? undefined : true, focusable: 'false', className, style: { flexShrink: 0, verticalAlign: 'middle', ...style }, dangerouslySetInnerHTML: { __html: iconArtwork[name] } });
+}

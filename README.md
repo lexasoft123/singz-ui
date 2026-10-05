@@ -250,3 +250,9 @@ npm run check   # dist/ is current AND no un-tokenised colours
 `dist/` is committed on purpose: consumers install straight from git, and a
 `prepare` build would make each of them install this package's toolchain and
 turn a failure here into a confusing failure in their CI.
+
+### Training icons
+
+Import `Icon` and `IconName` from `@singz/ui/icons` (React SVG) or `@singz/ui/native/icons` (React Native). Both use the same approved artwork. Native icons are pre-rendered at 112 px and tinted by the host; they add no native dependency. Default size is 24 px. Always give icon-only buttons an accessible name; icon labels are optional for standalone meaningful images.
+
+Available names: note, interval, chord, scale, piano, guitar, organ, speaker, calendar, flame, progress, replay, skip, pause, settings, play, pitch. Pass `size` and `color` to match the host theme.

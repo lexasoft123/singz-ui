@@ -45,9 +45,9 @@ export function Hairline() {
     const theme = useNativeTheme();
     return _jsx(View, { style: [s.hairline, { backgroundColor: theme.line }] });
 }
-export function SettingsRow({ label, value, expanded = false, onPress }) {
+export function SettingsRow({ label, value, icon, expanded = false, onPress }) {
     const theme = useNativeTheme();
-    return (_jsxs(Pressable, { accessibilityRole: "button", accessibilityState: { expanded }, onPress: onPress, style: ({ pressed }) => [s.settingsRow, pressed && s.pressed], children: [_jsx(Text, { style: [s.settingsLabel, { color: theme.dim }], children: label }), _jsxs(View, { style: s.settingsValueRow, children: [_jsx(Text, { numberOfLines: 1, style: [s.settingsValue, { color: theme.text }], children: value }), _jsx(Text, { style: [s.settingsChevron, { color: theme.accent }], children: expanded ? '⌃' : '›' })] })] }));
+    return (_jsxs(Pressable, { accessibilityRole: "button", accessibilityState: { expanded }, onPress: onPress, style: ({ pressed }) => [s.settingsRow, pressed && s.pressed], children: [_jsxs(View, { style: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }, children: [icon, _jsx(Text, { style: [s.settingsLabel, { color: theme.dim }], children: label })] }), _jsxs(View, { style: s.settingsValueRow, children: [_jsx(Text, { numberOfLines: 1, style: [s.settingsValue, { color: theme.text }], children: value }), _jsx(Text, { style: [s.settingsChevron, { color: theme.accent }], children: expanded ? '⌃' : '›' })] })] }));
 }
 export function StickyActionFooter({ children, style }) {
     const theme = useNativeTheme();

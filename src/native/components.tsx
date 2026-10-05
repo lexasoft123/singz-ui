@@ -121,16 +121,17 @@ export function Hairline(): React.JSX.Element {
   return <View style={[s.hairline, { backgroundColor: theme.line }]} />
 }
 
-export function SettingsRow({ label, value, expanded = false, onPress }: {
+export function SettingsRow({ label, value, icon, expanded = false, onPress }: {
   readonly label: string
   readonly value: string
+  readonly icon?: ReactNode
   readonly expanded?: boolean
   readonly onPress: () => void
 }): React.JSX.Element {
   const theme = useNativeTheme()
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={onPress} style={({ pressed }) => [s.settingsRow, pressed && s.pressed]}>
-      <Text style={[s.settingsLabel, { color: theme.dim }]}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>{icon}<Text style={[s.settingsLabel, { color: theme.dim }]}>{label}</Text></View>
       <View style={s.settingsValueRow}>
         <Text numberOfLines={1} style={[s.settingsValue, { color: theme.text }]}>{value}</Text>
         <Text style={[s.settingsChevron, { color: theme.accent }]}>{expanded ? '⌃' : '›'}</Text>

@@ -42,9 +42,10 @@ export declare function SettingsCard({ children, style }: {
     readonly style?: StyleProp<ViewStyle>;
 }): React.JSX.Element;
 export declare function Hairline(): React.JSX.Element;
-export declare function SettingsRow({ label, value, expanded, onPress }: {
+export declare function SettingsRow({ label, value, icon, expanded, onPress }: {
     readonly label: string;
     readonly value: string;
+    readonly icon?: ReactNode;
     readonly expanded?: boolean;
     readonly onPress: () => void;
 }): React.JSX.Element;

@@ -1,6 +1,6 @@
 {
   "name": "@singz/ui",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "The night-studio design language \u2014 tokens and React components shared across SingZ and friends.",
   "author": "lexasoft <lexasoft@gmail.com>",
   "license": "MIT",
@@ -35,6 +35,14 @@
     "./icon": {
       "types": "./dist/icon/glass.d.ts",
       "import": "./dist/icon/glass.js"
+    },
+    "./icons": {
+      "types": "./dist/icons/index.d.ts",
+      "import": "./dist/icons/index.js"
+    },
+    "./native/icons": {
+      "types": "./dist/icons/native.d.ts",
+      "import": "./dist/icons/native.js"
     }
   },
   "sideEffects": [
@@ -45,7 +53,8 @@
     "build": "tsc -p tsconfig.build.json && node scripts/gen-tokens.mjs",
     "check": "node scripts/check-dist.mjs && node scripts/check-themeable.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "themeable": "node scripts/check-themeable.mjs"
+    "themeable": "node scripts/check-themeable.mjs",
+    "icons:native": "npm run build && node scripts/gen-native-icons.mjs && npm run build"
   },
   "peerDependencies": {
     "react": "^18.3 || ^19",
@@ -69,6 +78,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-native": "^0.86.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "playwright-core": "^1.62.0"
   }
 }
