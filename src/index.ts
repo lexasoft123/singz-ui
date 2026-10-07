@@ -45,3 +45,5 @@ export {
   type WindowControlsApi
 } from './chrome/WindowButtons.js'
 export { STEM_META, CUSTOM_COLORS, STEM_ORDER, type StemMeta } from './tokens/stems.js'
+
+export { Banner, type BannerProps } from './primitives/Banner.js'

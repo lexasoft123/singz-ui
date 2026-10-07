@@ -1,7 +1,7 @@
 {
   "name": "@singz/ui",
-  "version": "1.9.4",
-  "description": "The night-studio design language — tokens and React components shared across SingZ and friends.",
+  "version": "1.9.5",
+  "description": "The night-studio design language \u2014 tokens and React components shared across SingZ and friends.",
   "author": "lexasoft <lexasoft@gmail.com>",
   "license": "MIT",
   "type": "module",
@@ -43,6 +43,10 @@
     "./native/icons": {
       "types": "./dist/icons/native.d.ts",
       "import": "./dist/icons/native.js"
+    },
+    "./banner": {
+      "types": "./dist/primitives/Banner.d.ts",
+      "import": "./dist/primitives/Banner.js"
     }
   },
   "sideEffects": [

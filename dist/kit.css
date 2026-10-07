@@ -685,6 +685,40 @@ input:focus-visible {
   opacity: 1;
 }
 
+/* Shared status, error and exercise feedback banner. */
+.sz-banner {
+  box-sizing: border-box;
+  width: min(720px, 100%);
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 10px 14px;
+  border: 1px solid var(--sz-line-strong);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--sz-accent-soft) 52%, var(--sz-panel));
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.sz-banner__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 12px;
+  min-height: 34px;
+}
+.sz-banner__icon { flex: none; color: var(--sz-accent); font-size: 22px; line-height: 1; }
+.sz-banner__heading { font-size: 18px; line-height: 1.35; }
+.sz-banner__detail, .sz-banner__footer { color: var(--sz-dim); font-size: 14px; line-height: 1.5; }
+.sz-banner__detail { min-width: 0; }
+.sz-banner__footer { margin-top: 4px; }
+.sz-banner--danger { border-color: var(--sz-danger); background: color-mix(in srgb, var(--sz-danger) 10%, var(--sz-panel)); }
+.sz-banner--danger .sz-banner__icon, .sz-banner--danger .sz-banner__detail { color: var(--sz-danger); }
+@media (max-width: 760px) {
+  .sz-banner__heading { max-width: calc(100% - 44px); }
+  .sz-banner__heading + .sz-banner__detail { flex-basis: 100%; }
+}
+
 /* ——————————————————————————— night-studio · overlays ————— */
 
 /*

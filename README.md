@@ -256,3 +256,10 @@ turn a failure here into a confusing failure in their CI.
 Import `Icon` and `IconName` from `@singz/ui/icons` (React SVG) or `@singz/ui/native/icons` (React Native). Both use the same approved artwork. Native icons are pre-rendered at 112 px and tinted by the host; they add no native dependency. Default size is 24 px. Always give icon-only buttons an accessible name; icon labels are optional for standalone meaningful images.
 
 Available names: note, interval, chord, scale, piano, guitar, organ, speaker, calendar, flame, progress, replay, skip, pause, settings, play, pitch. Pass `size` and `color` to match the host theme.
+
+### Banner
+
+`Banner` is the shared centered status, error and feedback element. Use `tone="danger"`
+for errors, `icon` for an optional mark, `heading` for a short title, children for
+the message, and `footer` for a second line. It wraps within its container and
+uses the active theme tokens. Live-region attributes can be overridden by the host.
