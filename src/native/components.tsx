@@ -67,7 +67,7 @@ export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtit
       </HeaderAction>}
       {leading}
     </View>}
-    <View pointerEvents="box-none" style={s.headerIdentity}>
+    <View pointerEvents="box-none" style={[s.headerIdentity, align === 'start' && !onBack && leading == null && s.headerIdentityInset]}>
       <Text accessibilityRole="header" accessibilityLabel={title} numberOfLines={1}
         ellipsizeMode="tail" maxFontSizeMultiplier={1.3}
         style={[s.headerTitle, { color: theme.text, textAlign: align === 'center' ? 'center' : 'left' }]}>{title}</Text>
@@ -417,6 +417,7 @@ const s = StyleSheet.create({
   headerFrame: { height: 62, minHeight: 62, maxHeight: 62, flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', paddingVertical: 0 },
   headerItems: { flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 4, flexShrink: 0 },
   headerIdentity: { flex: 1, minWidth: 0, justifyContent: 'center' },
+  headerIdentityInset: { paddingStart: 14 },
   headerSubtitle: { fontSize: 11, lineHeight: 14, marginTop: 1 },
   headerAction: { paddingHorizontal: 8, borderRadius: 22, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
   headerActionSize: { width: 44, minWidth: 44, maxWidth: 44, height: 44, minHeight: 44, maxHeight: 44 },
