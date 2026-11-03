@@ -64,35 +64,30 @@ The native theme is derived entirely from the same `tokens.ts` object that
 generates the web custom properties. Apps may wrap a subtree in
 `NativeThemeProvider`; without a provider, components use night-studio.
 
-### One responsive mobile header
+### One fixed-height mobile header
 
-Use `GlassHeader` for screen, dialog, library and floating-player headers. It
-accepts `title`, optional `onBack` / `backLabel`, `leading` branding or artwork,
-`subtitle`, `trailing` actions, and `children` for a secondary metadata row.
-`align="center"` is the default with Back; headers without Back default to
-`align="start"`. `variant="plain"` keeps the same layout without a glass surface.
-Native `View` props, including `style`, `testID` and `onLayout`, are forwarded.
-Apps measuring a floating header should use its actual `onLayout` height rather
-than assume one row, because actions can move below the title at narrow widths
-or large text sizes.
+Use `GlassHeader` for screen, dialog, library and floating-player headers. Its
+bar is always 62 points high. It accepts `title`, optional `onBack` / `backLabel`,
+`leading` branding or artwork, a single-line `subtitle`, and `trailing` actions.
+`align="center"` centers text in the remaining identity space; headers without
+Back default to `align="start"`. `variant="plain"` keeps the same layout without
+a glass surface. Native `View` props, including `testID` and `onLayout`, are
+forwarded. Style overrides can position the header but cannot enlarge the bar.
 
-Pass action elements directly in a fragment so the shared layout can wrap them;
-do not put them in a fixed-width or non-wrapping app-owned row. `HeaderAction`
-provides a named, minimum-48-point touch target for an icon or text label:
+The 17-point title and 11-point subtitle truncate with a tail ellipsis. Font
+scaling is capped at 1.3 for this compact navigation chrome; the full title
+remains its accessible label. Actions stay in one row with fixed 44-point
+`HeaderAction` touch targets. Use icons for actions whose labels do not fit;
+keep the complete translated name in `label` for accessibility. Additional
+badges or metadata belong in the screen body below the bar, not as header children.
 
 ```tsx
 <GlassHeader title="Practice" onBack={goBack} backLabel="Back"
   trailing={<>
-    <HeaderAction label="Recordings" onPress={openRecordings}><Text>1 / 6</Text></HeaderAction>
+    <HeaderAction label="Recordings" onPress={openRecordings}><RecordingsIcon /></HeaderAction>
     <HeaderAction label="Open log" onPress={openLog}><LogIcon /></HeaderAction>
   </>} />
 ```
-
-Action slots use natural widths. Centered titles reserve equal side space when
-there is room; crowded action groups move to a separate wrapping row instead of
-overlapping the title or shrinking their touch targets. Long titles wrap to two
-lines with their full accessible label retained. Subtitles and secondary content
-are supplied by the app; UIKit owns the common chrome and action geometry.
 
 ## Theming
 

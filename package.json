@@ -59,7 +59,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "themeable": "node scripts/check-themeable.mjs",
     "icons:native": "npm run build && node scripts/gen-native-icons.mjs && npm run build",
-    "test:header": "npm run build && node --test scripts/native-header.test.mjs"
+    "test:header": "npm run build && node --experimental-vm-modules --test scripts/native-header.test.mjs"
   },
   "peerDependencies": {
     "react": "^18.3 || ^19",

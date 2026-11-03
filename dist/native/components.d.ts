@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 import { type GlassElevation } from './theme.js';
 export interface GlassSurfaceProps extends ViewProps {
@@ -25,13 +25,12 @@ export interface GlassHeaderProps extends Omit<ViewProps, 'children'> {
     readonly leading?: ReactNode;
     readonly subtitle?: ReactNode;
     readonly trailing?: ReactNode;
-    readonly children?: ReactNode;
     readonly align?: 'center' | 'start';
     readonly variant?: 'glass' | 'plain';
 }
-/** Shared screen chrome. Slots measure their content instead of assuming one
- * icon; crowded actions wrap onto a separate row without reducing hit targets. */
-export declare function GlassHeader({ title, onBack, backLabel, leading, subtitle, trailing, children, align, variant, style, onLayout, ...props }: GlassHeaderProps): React.JSX.Element;
+/** Fixed-height screen chrome. Titles shrink to the remaining inline space
+ * and truncate; action touch targets never force the bar onto another row. */
+export declare function GlassHeader({ title, onBack, backLabel, leading, subtitle, trailing, align, variant, style, ...props }: GlassHeaderProps): React.JSX.Element;
 export interface ChoiceChipProps {
     readonly label: string;
     readonly selected?: boolean;
