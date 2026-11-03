@@ -23,6 +23,11 @@ export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtit
     const layout = headerLayout(width, leadingWidth, trailingWidth, fontScale, align);
     const contentWidth = width > 0 ? Math.max(0, width - 22) : undefined;
     const Root = variant === 'glass' ? GlassSurface : View;
+    const trailingContent = _jsxs(View, { pointerEvents: "box-none", style: [s.headerSide,
+            layout.stackActions && s.headerActionsRow], children: [layout.trailingSpace > 0 && _jsx(View, { style: { width: layout.trailingSpace } }), _jsx(View, { style: [s.headerItems, s.headerTrailing, { maxWidth: contentWidth }], onLayout: event => {
+                    const next = Math.ceil(event.nativeEvent.layout.width);
+                    setTrailingWidth(old => old === next ? old : next);
+                }, children: trailing })] }, "trailing");
     return _jsxs(Root, { ...props, style: [s.header, style], onLayout: event => {
             const next = Math.round(event.nativeEvent.layout.width);
             setWidth(old => old === next ? old : next);
@@ -32,11 +37,7 @@ export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtit
                                     setLeadingWidth(old => old === next ? old : next);
                                 }, children: [onBack && _jsx(HeaderAction, { label: backLabel, onPress: onBack, children: _jsx(Text, { pointerEvents: "none", style: [s.backChevron, { color: theme.text }], children: "\u2039" }) }), leading] }), layout.leadingSpace > 0 && _jsx(View, { style: { width: layout.leadingSpace } })] }, "leading"), _jsxs(View, { pointerEvents: "box-none", style: s.headerIdentity, children: [_jsx(Text, { accessibilityRole: "header", accessibilityLabel: title, numberOfLines: 2, style: [s.headerTitle, { color: theme.text, textAlign: align === 'center' ? 'center' : 'left' }], children: title }), subtitle != null && _jsx(View, { style: { alignItems: align === 'center' ? 'center' : 'flex-start' }, children: typeof subtitle === 'string' || typeof subtitle === 'number'
                                     ? _jsx(Text, { numberOfLines: 2, style: [s.headerSubtitle, { color: theme.dim }], children: subtitle })
-                                    : subtitle })] }, "title"), layout.stackActions && leadingWidth > 0 && align === 'center' && _jsx(View, { style: { width: leadingWidth } }, "balance"), _jsxs(View, { pointerEvents: "box-none", style: [s.headerSide,
-                            layout.stackActions && s.headerActionsRow], children: [layout.trailingSpace > 0 && _jsx(View, { style: { width: layout.trailingSpace } }), _jsx(View, { style: [s.headerItems, s.headerTrailing, { maxWidth: contentWidth }], onLayout: event => {
-                                    const next = Math.ceil(event.nativeEvent.layout.width);
-                                    setTrailingWidth(old => old === next ? old : next);
-                                }, children: trailing })] }, "trailing")] }), children != null && _jsx(View, { style: s.headerSecondary, children: children })] });
+                                    : subtitle })] }, "title"), layout.stackActions && align === 'center' && _jsx(View, { style: { width: leadingWidth } }, "balance"), !layout.stackActions && trailingContent] }), layout.stackActions && trailingContent, children != null && _jsx(View, { style: s.headerSecondary, children: children })] });
 }
 export function ChoiceChip({ label, selected = false, disabled = false, onPress, style }) {
     const theme = useNativeTheme();
@@ -154,7 +155,7 @@ const s = StyleSheet.create({
     headerSide: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
     headerItems: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, flexShrink: 0 },
     headerIdentity: { flex: 1, minWidth: 0, paddingVertical: 8 },
-    headerActionsRow: { flexBasis: '100%', justifyContent: 'flex-end', paddingBottom: 6 },
+    headerActionsRow: { alignSelf: 'stretch', justifyContent: 'flex-end', paddingBottom: 6 },
     headerSecondary: { paddingHorizontal: 4, paddingBottom: 10, gap: 6 },
     headerSubtitle: { fontSize: 12, lineHeight: 17, marginTop: 3 },
     headerAction: { minWidth: 48, minHeight: 48, maxWidth: '100%', paddingHorizontal: 10, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },

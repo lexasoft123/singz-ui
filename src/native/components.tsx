@@ -69,6 +69,15 @@ export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtit
   const layout = headerLayout(width, leadingWidth, trailingWidth, fontScale, align)
   const contentWidth = width > 0 ? Math.max(0, width - 22) : undefined
   const Root = variant === 'glass' ? GlassSurface : View
+  const trailingContent = <View key="trailing" pointerEvents="box-none" style={[s.headerSide,
+    layout.stackActions && s.headerActionsRow]}>
+    {layout.trailingSpace > 0 && <View style={{ width: layout.trailingSpace }} />}
+    <View style={[s.headerItems, s.headerTrailing, { maxWidth: contentWidth }]}
+      onLayout={event => {
+        const next = Math.ceil(event.nativeEvent.layout.width)
+        setTrailingWidth(old => old === next ? old : next)
+      }}>{trailing}</View>
+  </View>
   return <Root {...props} style={[s.header, style]} onLayout={event => {
     const next = Math.round(event.nativeEvent.layout.width)
     setWidth(old => old === next ? old : next)
@@ -96,17 +105,10 @@ export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtit
             : subtitle}
         </View>}
       </View>
-      {layout.stackActions && leadingWidth > 0 && align === 'center' && <View key="balance" style={{ width: leadingWidth }} />}
-      <View key="trailing" pointerEvents="box-none" style={[s.headerSide,
-        layout.stackActions && s.headerActionsRow]}>
-        {layout.trailingSpace > 0 && <View style={{ width: layout.trailingSpace }} />}
-        <View style={[s.headerItems, s.headerTrailing, { maxWidth: contentWidth }]}
-          onLayout={event => {
-            const next = Math.ceil(event.nativeEvent.layout.width)
-            setTrailingWidth(old => old === next ? old : next)
-          }}>{trailing}</View>
-      </View>
+      {layout.stackActions && align === 'center' && <View key="balance" style={{ width: leadingWidth }} />}
+      {!layout.stackActions && trailingContent}
     </View>
+    {layout.stackActions && trailingContent}
     {children != null && <View style={s.headerSecondary}>{children}</View>}
   </Root>
 }
@@ -451,7 +453,7 @@ const s = StyleSheet.create({
   headerSide: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
   headerItems: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, flexShrink: 0 },
   headerIdentity: { flex: 1, minWidth: 0, paddingVertical: 8 },
-  headerActionsRow: { flexBasis: '100%', justifyContent: 'flex-end', paddingBottom: 6 },
+  headerActionsRow: { alignSelf: 'stretch', justifyContent: 'flex-end', paddingBottom: 6 },
   headerSecondary: { paddingHorizontal: 4, paddingBottom: 10, gap: 6 },
   headerSubtitle: { fontSize: 12, lineHeight: 17, marginTop: 3 },
   headerAction: { minWidth: 48, minHeight: 48, maxWidth: '100%', paddingHorizontal: 10, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
