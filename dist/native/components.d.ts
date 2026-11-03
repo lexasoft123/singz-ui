@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 import { type GlassElevation } from './theme.js';
 export interface GlassSurfaceProps extends ViewProps {
@@ -8,12 +8,30 @@ export interface GlassSurfaceProps extends ViewProps {
     readonly children?: ReactNode;
 }
 export declare function GlassSurface({ radius, elevation, style, children, ...props }: GlassSurfaceProps): React.JSX.Element;
-export declare function GlassHeader({ title, onBack, backLabel, trailing }: {
+export interface HeaderActionProps {
+    readonly label: string;
+    readonly onPress: () => void;
+    readonly children: ReactNode;
+    readonly disabled?: boolean;
+    readonly testID?: string;
+    readonly style?: StyleProp<ViewStyle>;
+}
+/** A named header action with a full touch surface, including text actions. */
+export declare function HeaderAction({ label, onPress, children, disabled, testID, style }: HeaderActionProps): React.JSX.Element;
+export interface GlassHeaderProps extends Omit<ViewProps, 'children'> {
     readonly title: string;
-    readonly onBack: () => void;
+    readonly onBack?: () => void;
     readonly backLabel?: string;
+    readonly leading?: ReactNode;
+    readonly subtitle?: ReactNode;
     readonly trailing?: ReactNode;
-}): React.JSX.Element;
+    readonly children?: ReactNode;
+    readonly align?: 'center' | 'start';
+    readonly variant?: 'glass' | 'plain';
+}
+/** Shared screen chrome. Slots measure their content instead of assuming one
+ * icon; crowded actions wrap onto a separate row without reducing hit targets. */
+export declare function GlassHeader({ title, onBack, backLabel, leading, subtitle, trailing, children, align, variant, style, onLayout, ...props }: GlassHeaderProps): React.JSX.Element;
 export interface ChoiceChipProps {
     readonly label: string;
     readonly selected?: boolean;

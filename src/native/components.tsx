@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   Pressable,
   StyleSheet,
@@ -6,8 +6,10 @@ import {
   View,
   type StyleProp,
   type ViewProps,
-  type ViewStyle
+  type ViewStyle,
+  useWindowDimensions
 } from 'react-native'
+import { headerLayout } from './header-layout.js'
 import { nativeGlassStyle, useNativeTheme, type GlassElevation } from './theme.js'
 
 export interface GlassSurfaceProps extends ViewProps {
@@ -22,22 +24,91 @@ export function GlassSurface({ radius = 24, elevation = 'surface', style, childr
   return <View {...props} style={[nativeGlassStyle(theme, elevation), { borderRadius: radius }, style]}>{children}</View>
 }
 
-export function GlassHeader({ title, onBack, backLabel = 'Back', trailing }: {
-  readonly title: string
-  readonly onBack: () => void
-  readonly backLabel?: string
-  readonly trailing?: ReactNode
-}): React.JSX.Element {
+export interface HeaderActionProps {
+  readonly label: string
+  readonly onPress: () => void
+  readonly children: ReactNode
+  readonly disabled?: boolean
+  readonly testID?: string
+  readonly style?: StyleProp<ViewStyle>
+}
+
+/** A named header action with a full touch surface, including text actions. */
+export function HeaderAction({ label, onPress, children, disabled = false, testID, style }: HeaderActionProps): React.JSX.Element {
   const theme = useNativeTheme()
-  return (
-    <GlassSurface radius={31} style={s.header}>
-      <Pressable collapsable={false} accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={10} pressRetentionOffset={12} onPress={onBack} style={({ pressed }) => [s.headerAction, pressed && s.pressed]}>
-        <Text pointerEvents="none" style={[s.backChevron, { color: theme.text }]}>‹</Text>
-      </Pressable>
-      <Text pointerEvents="none" accessibilityRole="header" style={[s.headerTitle, { color: theme.text }]}>{title}</Text>
-      <View pointerEvents="box-none" style={s.headerTrailing}>{trailing}</View>
-    </GlassSurface>
-  )
+  return <Pressable collapsable={false} accessibilityRole="button" accessibilityLabel={label}
+    accessibilityState={{ disabled }} disabled={disabled} testID={testID}
+    hitSlop={10} pressRetentionOffset={12} onPress={onPress}
+    style={({ pressed }) => [s.headerAction, disabled && s.disabled, pressed && { backgroundColor: theme.controlFill }, style]}>
+    {children}
+  </Pressable>
+}
+
+export interface GlassHeaderProps extends Omit<ViewProps, 'children'> {
+  readonly title: string
+  readonly onBack?: () => void
+  readonly backLabel?: string
+  readonly leading?: ReactNode
+  readonly subtitle?: ReactNode
+  readonly trailing?: ReactNode
+  readonly children?: ReactNode
+  readonly align?: 'center' | 'start'
+  readonly variant?: 'glass' | 'plain'
+}
+
+/** Shared screen chrome. Slots measure their content instead of assuming one
+ * icon; crowded actions wrap onto a separate row without reducing hit targets. */
+export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtitle,
+  trailing, children, align = onBack ? 'center' : 'start', variant = 'glass',
+  style, onLayout, ...props }: GlassHeaderProps): React.JSX.Element {
+  const theme = useNativeTheme()
+  const { fontScale } = useWindowDimensions()
+  const [width, setWidth] = useState(0)
+  const [leadingWidth, setLeadingWidth] = useState(0)
+  const [trailingWidth, setTrailingWidth] = useState(0)
+  const layout = headerLayout(width, leadingWidth, trailingWidth, fontScale, align)
+  const contentWidth = width > 0 ? Math.max(0, width - 22) : undefined
+  const Root = variant === 'glass' ? GlassSurface : View
+  return <Root {...props} style={[s.header, style]} onLayout={event => {
+    const next = Math.round(event.nativeEvent.layout.width)
+    setWidth(old => old === next ? old : next)
+    onLayout?.(event)
+  }}>
+    <View style={s.headerRow}>
+      <View key="leading" pointerEvents="box-none" style={s.headerSide}>
+        <View style={[s.headerItems, { maxWidth: contentWidth }]} onLayout={event => {
+          const next = Math.ceil(event.nativeEvent.layout.width)
+          setLeadingWidth(old => old === next ? old : next)
+        }}>
+          {onBack && <HeaderAction label={backLabel} onPress={onBack}>
+            <Text pointerEvents="none" style={[s.backChevron, { color: theme.text }]}>‹</Text>
+          </HeaderAction>}
+          {leading}
+        </View>
+        {layout.leadingSpace > 0 && <View style={{ width: layout.leadingSpace }} />}
+      </View>
+      <View key="title" pointerEvents="box-none" style={s.headerIdentity}>
+        <Text accessibilityRole="header" accessibilityLabel={title} numberOfLines={2}
+          style={[s.headerTitle, { color: theme.text, textAlign: align === 'center' ? 'center' : 'left' }]}>{title}</Text>
+        {subtitle != null && <View style={{ alignItems: align === 'center' ? 'center' : 'flex-start' }}>
+          {typeof subtitle === 'string' || typeof subtitle === 'number'
+            ? <Text numberOfLines={2} style={[s.headerSubtitle, { color: theme.dim }]}>{subtitle}</Text>
+            : subtitle}
+        </View>}
+      </View>
+      {layout.stackActions && leadingWidth > 0 && align === 'center' && <View key="balance" style={{ width: leadingWidth }} />}
+      <View key="trailing" pointerEvents="box-none" style={[s.headerSide,
+        layout.stackActions && s.headerActionsRow]}>
+        {layout.trailingSpace > 0 && <View style={{ width: layout.trailingSpace }} />}
+        <View style={[s.headerItems, s.headerTrailing, { maxWidth: contentWidth }]}
+          onLayout={event => {
+            const next = Math.ceil(event.nativeEvent.layout.width)
+            setTrailingWidth(old => old === next ? old : next)
+          }}>{trailing}</View>
+      </View>
+    </View>
+    {children != null && <View style={s.headerSecondary}>{children}</View>}
+  </Root>
 }
 
 export interface ChoiceChipProps {
@@ -375,11 +446,18 @@ export function TransportDock({ left, center, right, hint }: { readonly left?: T
 const s = StyleSheet.create({
   pressed: { opacity: 0.65 },
   disabled: { opacity: 0.35 },
-  header: { minHeight: 62, flexDirection: 'row', marginBottom: 4, paddingHorizontal: 10, alignItems: 'center' },
-  headerAction: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
+  header: { minHeight: 62, borderRadius: 31, marginBottom: 4, paddingHorizontal: 10 },
+  headerRow: { minHeight: 60, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8 },
+  headerSide: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
+  headerItems: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, flexShrink: 0 },
+  headerIdentity: { flex: 1, minWidth: 0, paddingVertical: 8 },
+  headerActionsRow: { flexBasis: '100%', justifyContent: 'flex-end', paddingBottom: 6 },
+  headerSecondary: { paddingHorizontal: 4, paddingBottom: 10, gap: 6 },
+  headerSubtitle: { fontSize: 12, lineHeight: 17, marginTop: 3 },
+  headerAction: { minWidth: 48, minHeight: 48, maxWidth: '100%', paddingHorizontal: 10, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
   backChevron: { fontSize: 30, lineHeight: 32, fontWeight: '600', marginTop: -4 },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: '900', letterSpacing: -0.4, textAlign: 'center' },
-  headerTrailing: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 20, fontWeight: '900', letterSpacing: -0.4, textAlign: 'center' },
+  headerTrailing: { minHeight: 48, justifyContent: 'flex-end' },
   chip: { minHeight: 42, minWidth: 42, paddingHorizontal: 13, borderRadius: 15, borderCurve: 'continuous', borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   chipText: { fontSize: 13, fontWeight: '700', textTransform: 'capitalize' },
   primary: { minHeight: 54, borderRadius: 18, paddingHorizontal: 22, flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center' },

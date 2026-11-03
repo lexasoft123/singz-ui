@@ -1,13 +1,42 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { headerLayout } from './header-layout.js';
 import { nativeGlassStyle, useNativeTheme } from './theme.js';
 export function GlassSurface({ radius = 24, elevation = 'surface', style, children, ...props }) {
     const theme = useNativeTheme();
     return _jsx(View, { ...props, style: [nativeGlassStyle(theme, elevation), { borderRadius: radius }, style], children: children });
 }
-export function GlassHeader({ title, onBack, backLabel = 'Back', trailing }) {
+/** A named header action with a full touch surface, including text actions. */
+export function HeaderAction({ label, onPress, children, disabled = false, testID, style }) {
     const theme = useNativeTheme();
-    return (_jsxs(GlassSurface, { radius: 31, style: s.header, children: [_jsx(Pressable, { collapsable: false, accessibilityRole: "button", accessibilityLabel: backLabel, hitSlop: 10, pressRetentionOffset: 12, onPress: onBack, style: ({ pressed }) => [s.headerAction, pressed && s.pressed], children: _jsx(Text, { pointerEvents: "none", style: [s.backChevron, { color: theme.text }], children: "\u2039" }) }), _jsx(Text, { pointerEvents: "none", accessibilityRole: "header", style: [s.headerTitle, { color: theme.text }], children: title }), _jsx(View, { pointerEvents: "box-none", style: s.headerTrailing, children: trailing })] }));
+    return _jsx(Pressable, { collapsable: false, accessibilityRole: "button", accessibilityLabel: label, accessibilityState: { disabled }, disabled: disabled, testID: testID, hitSlop: 10, pressRetentionOffset: 12, onPress: onPress, style: ({ pressed }) => [s.headerAction, disabled && s.disabled, pressed && { backgroundColor: theme.controlFill }, style], children: children });
+}
+/** Shared screen chrome. Slots measure their content instead of assuming one
+ * icon; crowded actions wrap onto a separate row without reducing hit targets. */
+export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtitle, trailing, children, align = onBack ? 'center' : 'start', variant = 'glass', style, onLayout, ...props }) {
+    const theme = useNativeTheme();
+    const { fontScale } = useWindowDimensions();
+    const [width, setWidth] = useState(0);
+    const [leadingWidth, setLeadingWidth] = useState(0);
+    const [trailingWidth, setTrailingWidth] = useState(0);
+    const layout = headerLayout(width, leadingWidth, trailingWidth, fontScale, align);
+    const contentWidth = width > 0 ? Math.max(0, width - 22) : undefined;
+    const Root = variant === 'glass' ? GlassSurface : View;
+    return _jsxs(Root, { ...props, style: [s.header, style], onLayout: event => {
+            const next = Math.round(event.nativeEvent.layout.width);
+            setWidth(old => old === next ? old : next);
+            onLayout?.(event);
+        }, children: [_jsxs(View, { style: s.headerRow, children: [_jsxs(View, { pointerEvents: "box-none", style: s.headerSide, children: [_jsxs(View, { style: [s.headerItems, { maxWidth: contentWidth }], onLayout: event => {
+                                    const next = Math.ceil(event.nativeEvent.layout.width);
+                                    setLeadingWidth(old => old === next ? old : next);
+                                }, children: [onBack && _jsx(HeaderAction, { label: backLabel, onPress: onBack, children: _jsx(Text, { pointerEvents: "none", style: [s.backChevron, { color: theme.text }], children: "\u2039" }) }), leading] }), layout.leadingSpace > 0 && _jsx(View, { style: { width: layout.leadingSpace } })] }, "leading"), _jsxs(View, { pointerEvents: "box-none", style: s.headerIdentity, children: [_jsx(Text, { accessibilityRole: "header", accessibilityLabel: title, numberOfLines: 2, style: [s.headerTitle, { color: theme.text, textAlign: align === 'center' ? 'center' : 'left' }], children: title }), subtitle != null && _jsx(View, { style: { alignItems: align === 'center' ? 'center' : 'flex-start' }, children: typeof subtitle === 'string' || typeof subtitle === 'number'
+                                    ? _jsx(Text, { numberOfLines: 2, style: [s.headerSubtitle, { color: theme.dim }], children: subtitle })
+                                    : subtitle })] }, "title"), layout.stackActions && leadingWidth > 0 && align === 'center' && _jsx(View, { style: { width: leadingWidth } }, "balance"), _jsxs(View, { pointerEvents: "box-none", style: [s.headerSide,
+                            layout.stackActions && s.headerActionsRow], children: [layout.trailingSpace > 0 && _jsx(View, { style: { width: layout.trailingSpace } }), _jsx(View, { style: [s.headerItems, s.headerTrailing, { maxWidth: contentWidth }], onLayout: event => {
+                                    const next = Math.ceil(event.nativeEvent.layout.width);
+                                    setTrailingWidth(old => old === next ? old : next);
+                                }, children: trailing })] }, "trailing")] }), children != null && _jsx(View, { style: s.headerSecondary, children: children })] });
 }
 export function ChoiceChip({ label, selected = false, disabled = false, onPress, style }) {
     const theme = useNativeTheme();
@@ -120,11 +149,18 @@ export function TransportDock({ left, center, right, hint }) {
 const s = StyleSheet.create({
     pressed: { opacity: 0.65 },
     disabled: { opacity: 0.35 },
-    header: { minHeight: 62, flexDirection: 'row', marginBottom: 4, paddingHorizontal: 10, alignItems: 'center' },
-    headerAction: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
+    header: { minHeight: 62, borderRadius: 31, marginBottom: 4, paddingHorizontal: 10 },
+    headerRow: { minHeight: 60, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8 },
+    headerSide: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
+    headerItems: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, flexShrink: 0 },
+    headerIdentity: { flex: 1, minWidth: 0, paddingVertical: 8 },
+    headerActionsRow: { flexBasis: '100%', justifyContent: 'flex-end', paddingBottom: 6 },
+    headerSecondary: { paddingHorizontal: 4, paddingBottom: 10, gap: 6 },
+    headerSubtitle: { fontSize: 12, lineHeight: 17, marginTop: 3 },
+    headerAction: { minWidth: 48, minHeight: 48, maxWidth: '100%', paddingHorizontal: 10, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
     backChevron: { fontSize: 30, lineHeight: 32, fontWeight: '600', marginTop: -4 },
-    headerTitle: { flex: 1, fontSize: 20, fontWeight: '900', letterSpacing: -0.4, textAlign: 'center' },
-    headerTrailing: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+    headerTitle: { fontSize: 20, fontWeight: '900', letterSpacing: -0.4, textAlign: 'center' },
+    headerTrailing: { minHeight: 48, justifyContent: 'flex-end' },
     chip: { minHeight: 42, minWidth: 42, paddingHorizontal: 13, borderRadius: 15, borderCurve: 'continuous', borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     chipText: { fontSize: 13, fontWeight: '700', textTransform: 'capitalize' },
     primary: { minHeight: 54, borderRadius: 18, paddingHorizontal: 22, flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center' },
