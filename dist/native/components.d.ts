@@ -8,12 +8,29 @@ export interface GlassSurfaceProps extends ViewProps {
     readonly children?: ReactNode;
 }
 export declare function GlassSurface({ radius, elevation, style, children, ...props }: GlassSurfaceProps): React.JSX.Element;
-export declare function GlassHeader({ title, onBack, backLabel, trailing }: {
+export interface HeaderActionProps {
+    readonly label: string;
+    readonly onPress: () => void;
+    readonly children: ReactNode;
+    readonly disabled?: boolean;
+    readonly testID?: string;
+    readonly style?: StyleProp<ViewStyle>;
+}
+/** A named header action with a full touch surface, including text actions. */
+export declare function HeaderAction({ label, onPress, children, disabled, testID, style }: HeaderActionProps): React.JSX.Element;
+export interface GlassHeaderProps extends Omit<ViewProps, 'children'> {
     readonly title: string;
-    readonly onBack: () => void;
+    readonly onBack?: () => void;
     readonly backLabel?: string;
+    readonly leading?: ReactNode;
+    readonly subtitle?: ReactNode;
     readonly trailing?: ReactNode;
-}): React.JSX.Element;
+    readonly align?: 'center' | 'start';
+    readonly variant?: 'glass' | 'plain';
+}
+/** Fixed-height screen chrome. Titles shrink to the remaining inline space
+ * and truncate; action touch targets never force the bar onto another row. */
+export declare function GlassHeader({ title, onBack, backLabel, leading, subtitle, trailing, align, variant, style, ...props }: GlassHeaderProps): React.JSX.Element;
 export interface ChoiceChipProps {
     readonly label: string;
     readonly selected?: boolean;

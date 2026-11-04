@@ -22,22 +22,60 @@ export function GlassSurface({ radius = 24, elevation = 'surface', style, childr
   return <View {...props} style={[nativeGlassStyle(theme, elevation), { borderRadius: radius }, style]}>{children}</View>
 }
 
-export function GlassHeader({ title, onBack, backLabel = 'Back', trailing }: {
-  readonly title: string
-  readonly onBack: () => void
-  readonly backLabel?: string
-  readonly trailing?: ReactNode
-}): React.JSX.Element {
+export interface HeaderActionProps {
+  readonly label: string
+  readonly onPress: () => void
+  readonly children: ReactNode
+  readonly disabled?: boolean
+  readonly testID?: string
+  readonly style?: StyleProp<ViewStyle>
+}
+
+/** A named header action with a full touch surface, including text actions. */
+export function HeaderAction({ label, onPress, children, disabled = false, testID, style }: HeaderActionProps): React.JSX.Element {
   const theme = useNativeTheme()
-  return (
-    <GlassSurface radius={31} style={s.header}>
-      <Pressable collapsable={false} accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={10} pressRetentionOffset={12} onPress={onBack} style={({ pressed }) => [s.headerAction, pressed && s.pressed]}>
-        <Text pointerEvents="none" style={[s.backChevron, { color: theme.text }]}>‹</Text>
-      </Pressable>
-      <Text pointerEvents="none" accessibilityRole="header" style={[s.headerTitle, { color: theme.text }]}>{title}</Text>
-      <View pointerEvents="box-none" style={s.headerTrailing}>{trailing}</View>
-    </GlassSurface>
-  )
+  return <Pressable collapsable={false} accessibilityRole="button" accessibilityLabel={label}
+    accessibilityState={{ disabled }} disabled={disabled} testID={testID}
+    hitSlop={10} pressRetentionOffset={12} onPress={onPress}
+    style={({ pressed }) => [s.headerAction, disabled && s.disabled, pressed && { backgroundColor: theme.controlFill }, style, s.headerActionSize]}>
+    {children}
+  </Pressable>
+}
+
+export interface GlassHeaderProps extends Omit<ViewProps, 'children'> {
+  readonly title: string
+  readonly onBack?: () => void
+  readonly backLabel?: string
+  readonly leading?: ReactNode
+  readonly subtitle?: ReactNode
+  readonly trailing?: ReactNode
+  readonly align?: 'center' | 'start'
+  readonly variant?: 'glass' | 'plain'
+}
+
+/** Fixed-height screen chrome. Titles shrink to the remaining inline space
+ * and truncate; action touch targets never force the bar onto another row. */
+export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtitle,
+  trailing, align = onBack ? 'center' : 'start', variant = 'glass',
+  style, ...props }: GlassHeaderProps): React.JSX.Element {
+  const theme = useNativeTheme()
+  const Root = variant === 'glass' ? GlassSurface : View
+  return <Root {...props} style={[s.header, style, s.headerFrame]}>
+    {(onBack || leading != null) && <View pointerEvents="box-none" style={s.headerItems}>
+      {onBack && <HeaderAction label={backLabel} onPress={onBack}>
+        <Text pointerEvents="none" maxFontSizeMultiplier={1.3} style={[s.backChevron, { color: theme.text }]}>‹</Text>
+      </HeaderAction>}
+      {leading}
+    </View>}
+    <View pointerEvents="box-none" style={[s.headerIdentity, align === 'start' && !onBack && leading == null && s.headerIdentityInset]}>
+      <Text accessibilityRole="header" accessibilityLabel={title} numberOfLines={1}
+        ellipsizeMode="tail" maxFontSizeMultiplier={1.3}
+        style={[s.headerTitle, { color: theme.text, textAlign: align === 'center' ? 'center' : 'left' }]}>{title}</Text>
+      {subtitle != null && <Text numberOfLines={1} ellipsizeMode="tail" maxFontSizeMultiplier={1.3}
+        style={[s.headerSubtitle, { color: theme.dim, textAlign: align === 'center' ? 'center' : 'left' }]}>{subtitle}</Text>}
+    </View>
+    {trailing != null && <View pointerEvents="box-none" style={s.headerItems}>{trailing}</View>}
+  </Root>
 }
 
 export interface ChoiceChipProps {
@@ -375,11 +413,16 @@ export function TransportDock({ left, center, right, hint }: { readonly left?: T
 const s = StyleSheet.create({
   pressed: { opacity: 0.65 },
   disabled: { opacity: 0.35 },
-  header: { minHeight: 62, flexDirection: 'row', marginBottom: 4, paddingHorizontal: 10, alignItems: 'center' },
-  headerAction: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
-  backChevron: { fontSize: 30, lineHeight: 32, fontWeight: '600', marginTop: -4 },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: '900', letterSpacing: -0.4, textAlign: 'center' },
-  headerTrailing: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  header: { borderRadius: 31, marginBottom: 4, paddingHorizontal: 10, columnGap: 8 },
+  headerFrame: { height: 62, minHeight: 62, maxHeight: 62, flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', paddingVertical: 0 },
+  headerItems: { flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 4, flexShrink: 0 },
+  headerIdentity: { flex: 1, minWidth: 0, justifyContent: 'center' },
+  headerIdentityInset: { paddingStart: 14 },
+  headerSubtitle: { fontSize: 11, lineHeight: 14, marginTop: 1 },
+  headerAction: { paddingHorizontal: 8, borderRadius: 22, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
+  headerActionSize: { width: 44, minWidth: 44, maxWidth: 44, height: 44, minHeight: 44, maxHeight: 44 },
+  backChevron: { fontSize: 26, lineHeight: 30, fontWeight: '600', marginTop: -3 },
+  headerTitle: { fontSize: 17, lineHeight: 22, fontWeight: '900', letterSpacing: -0.3 },
   chip: { minHeight: 42, minWidth: 42, paddingHorizontal: 13, borderRadius: 15, borderCurve: 'continuous', borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   chipText: { fontSize: 13, fontWeight: '700', textTransform: 'capitalize' },
   primary: { minHeight: 54, borderRadius: 18, paddingHorizontal: 22, flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center' },

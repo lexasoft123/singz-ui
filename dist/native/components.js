@@ -5,9 +5,17 @@ export function GlassSurface({ radius = 24, elevation = 'surface', style, childr
     const theme = useNativeTheme();
     return _jsx(View, { ...props, style: [nativeGlassStyle(theme, elevation), { borderRadius: radius }, style], children: children });
 }
-export function GlassHeader({ title, onBack, backLabel = 'Back', trailing }) {
+/** A named header action with a full touch surface, including text actions. */
+export function HeaderAction({ label, onPress, children, disabled = false, testID, style }) {
     const theme = useNativeTheme();
-    return (_jsxs(GlassSurface, { radius: 31, style: s.header, children: [_jsx(Pressable, { collapsable: false, accessibilityRole: "button", accessibilityLabel: backLabel, hitSlop: 10, pressRetentionOffset: 12, onPress: onBack, style: ({ pressed }) => [s.headerAction, pressed && s.pressed], children: _jsx(Text, { pointerEvents: "none", style: [s.backChevron, { color: theme.text }], children: "\u2039" }) }), _jsx(Text, { pointerEvents: "none", accessibilityRole: "header", style: [s.headerTitle, { color: theme.text }], children: title }), _jsx(View, { pointerEvents: "box-none", style: s.headerTrailing, children: trailing })] }));
+    return _jsx(Pressable, { collapsable: false, accessibilityRole: "button", accessibilityLabel: label, accessibilityState: { disabled }, disabled: disabled, testID: testID, hitSlop: 10, pressRetentionOffset: 12, onPress: onPress, style: ({ pressed }) => [s.headerAction, disabled && s.disabled, pressed && { backgroundColor: theme.controlFill }, style, s.headerActionSize], children: children });
+}
+/** Fixed-height screen chrome. Titles shrink to the remaining inline space
+ * and truncate; action touch targets never force the bar onto another row. */
+export function GlassHeader({ title, onBack, backLabel = 'Back', leading, subtitle, trailing, align = onBack ? 'center' : 'start', variant = 'glass', style, ...props }) {
+    const theme = useNativeTheme();
+    const Root = variant === 'glass' ? GlassSurface : View;
+    return _jsxs(Root, { ...props, style: [s.header, style, s.headerFrame], children: [(onBack || leading != null) && _jsxs(View, { pointerEvents: "box-none", style: s.headerItems, children: [onBack && _jsx(HeaderAction, { label: backLabel, onPress: onBack, children: _jsx(Text, { pointerEvents: "none", maxFontSizeMultiplier: 1.3, style: [s.backChevron, { color: theme.text }], children: "\u2039" }) }), leading] }), _jsxs(View, { pointerEvents: "box-none", style: [s.headerIdentity, align === 'start' && !onBack && leading == null && s.headerIdentityInset], children: [_jsx(Text, { accessibilityRole: "header", accessibilityLabel: title, numberOfLines: 1, ellipsizeMode: "tail", maxFontSizeMultiplier: 1.3, style: [s.headerTitle, { color: theme.text, textAlign: align === 'center' ? 'center' : 'left' }], children: title }), subtitle != null && _jsx(Text, { numberOfLines: 1, ellipsizeMode: "tail", maxFontSizeMultiplier: 1.3, style: [s.headerSubtitle, { color: theme.dim, textAlign: align === 'center' ? 'center' : 'left' }], children: subtitle })] }), trailing != null && _jsx(View, { pointerEvents: "box-none", style: s.headerItems, children: trailing })] });
 }
 export function ChoiceChip({ label, selected = false, disabled = false, onPress, style }) {
     const theme = useNativeTheme();
@@ -120,11 +128,16 @@ export function TransportDock({ left, center, right, hint }) {
 const s = StyleSheet.create({
     pressed: { opacity: 0.65 },
     disabled: { opacity: 0.35 },
-    header: { minHeight: 62, flexDirection: 'row', marginBottom: 4, paddingHorizontal: 10, alignItems: 'center' },
-    headerAction: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
-    backChevron: { fontSize: 30, lineHeight: 32, fontWeight: '600', marginTop: -4 },
-    headerTitle: { flex: 1, fontSize: 20, fontWeight: '900', letterSpacing: -0.4, textAlign: 'center' },
-    headerTrailing: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+    header: { borderRadius: 31, marginBottom: 4, paddingHorizontal: 10, columnGap: 8 },
+    headerFrame: { height: 62, minHeight: 62, maxHeight: 62, flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', paddingVertical: 0 },
+    headerItems: { flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', gap: 4, flexShrink: 0 },
+    headerIdentity: { flex: 1, minWidth: 0, justifyContent: 'center' },
+    headerIdentityInset: { paddingStart: 14 },
+    headerSubtitle: { fontSize: 11, lineHeight: 14, marginTop: 1 },
+    headerAction: { paddingHorizontal: 8, borderRadius: 22, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 4 },
+    headerActionSize: { width: 44, minWidth: 44, maxWidth: 44, height: 44, minHeight: 44, maxHeight: 44 },
+    backChevron: { fontSize: 26, lineHeight: 30, fontWeight: '600', marginTop: -3 },
+    headerTitle: { fontSize: 17, lineHeight: 22, fontWeight: '900', letterSpacing: -0.3 },
     chip: { minHeight: 42, minWidth: 42, paddingHorizontal: 13, borderRadius: 15, borderCurve: 'continuous', borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     chipText: { fontSize: 13, fontWeight: '700', textTransform: 'capitalize' },
     primary: { minHeight: 54, borderRadius: 18, paddingHorizontal: 22, flexDirection: 'row', gap: 9, alignItems: 'center', justifyContent: 'center' },
