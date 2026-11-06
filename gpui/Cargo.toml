@@ -1,0 +1,12 @@
+[package]
+name = "singz-uikit"
+version = "0.1.0"
+edition = "2021"
+description = "Shared SingZ native GPUI design tokens and controls"
+license = "MIT"
+
+[dependencies]
+gpui-kit = "=0.9.0"
+image = { version = "0.25", default-features = false, features = ["png"] }
+resvg = "=0.46.0"
+unicode-linebreak = "=0.1.5"
