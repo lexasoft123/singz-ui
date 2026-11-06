@@ -6,6 +6,7 @@ description = "Shared SingZ native GPUI design tokens and controls"
 license = "MIT"
 
 [dependencies]
+anyhow = "1"
 gpui-kit = "=0.9.0"
 image = { version = "0.25", default-features = false, features = ["png"] }
 resvg = "=0.46.0"

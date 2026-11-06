@@ -47,18 +47,21 @@
     "./banner": {
       "types": "./dist/primitives/Banner.d.ts",
       "import": "./dist/primitives/Banner.js"
-    }
+    },
+    "./fonts.css": "./dist/fonts.css",
+    "./fonts/*": "./dist/fonts/*"
   },
   "sideEffects": [
     "*.css"
   ],
   "scripts": {
     "gen": "node scripts/gen-tokens.mjs",
-    "build": "tsc -p tsconfig.build.json && node scripts/gen-tokens.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/gen-tokens.mjs && node scripts/build-fonts.mjs",
     "check": "node scripts/check-dist.mjs && node scripts/check-themeable.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "themeable": "node scripts/check-themeable.mjs",
-    "icons:native": "npm run build && node scripts/gen-native-icons.mjs && npm run build"
+    "icons:native": "npm run build && node scripts/gen-native-icons.mjs && npm run build",
+    "fonts:generate": "python3 scripts/gen-fonts.py && node scripts/build-fonts.mjs"
   },
   "peerDependencies": {
     "react": "^18.3 || ^19",

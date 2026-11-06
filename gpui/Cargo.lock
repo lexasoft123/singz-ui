@@ -5854,7 +5854,11 @@ dependencies = [
 name = "singz-uikit"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "gpui-kit",
+ "image",
+ "resvg 0.46.0",
+ "unicode-linebreak",
 ]
 
 [[package]]

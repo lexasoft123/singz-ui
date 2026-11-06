@@ -263,3 +263,20 @@ Available names: note, interval, chord, scale, piano, guitar, organ, speaker, ca
 for errors, `icon` for an optional mark, `heading` for a short title, children for
 the message, and `footer` for a second line. It wraps within its container and
 uses the active theme tokens. Live-region attributes can be overridden by the host.
+
+## Bundled fonts
+
+`@singz/ui/fonts.css` registers the kit-owned Bricolage Grotesque and Martian Mono
+variable fonts with their original Unicode subsets, plus the native static family aliases.
+The files and OFL licenses ship in `dist/fonts` and are exported as `@singz/ui/fonts/*`.
+The canonical font sources and static instances live in `gpui/assets/fonts`; consuming
+apps do not need private font copies or a separate Fontsource download. Native GPUI
+consumers call `singz_uikit::init(cx)`, which registers the bundled fonts once per App.
+
+```ts
+import '@singz/ui/fonts.css'
+import '@singz/ui/kit.css'
+```
+
+The palette's font tokens remain themeable; web hosts can select
+`'Bricolage Grotesque Variable'` and `'Martian Mono Variable'` in their font overrides.

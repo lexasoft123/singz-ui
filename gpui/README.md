@@ -2,7 +2,7 @@
 
 Shared GPUI controls for the desktop prototype. This is a Rust counterpart to
 `src/tokens/tokens.ts`, `src/tokens/stems.ts` and the CSS primitives; it does not
-load fonts, open windows or own application state.
+install system fonts, open windows or own application state.
 
 ```toml
 [dependencies]
@@ -16,10 +16,16 @@ let button = pill("library", "Library", false)
     .on_click(|_, _, _| { /* navigate */ });
 ```
 
-The host must register the exact static `SingZ Display 400/500/600/650/700/800`
-and `SingZ Mono 400/500` faces before rendering. Each face is selected by family
-name and normal weight to prevent native variable-font interpolation drift.
-No fonts are installed globally.
+The crate owns the exact `SingZ Display 400/500/600/650/700/800` and
+`SingZ Mono 400/500/700` font files in `assets/fonts`. `init(cx)` registers
+these faces once per App; hosts need no font files or `add_fonts` call.
+Each visual weight is a separate family selected with normal style in the UIKit API.
+Windows aliases normalize only style metadata to match DirectWrite; CoreText keeps its
+original metadata and fallback behavior. Both variants contain identical static glyph
+outlines and layout tables, without variable interpolation.
+The same assets and original variable Unicode subsets ship in npm `dist/fonts`,
+with `@singz/ui/fonts.css` as the web registration entry. OFL licenses ship beside them.
+Regenerate with `python3 scripts/gen-fonts.py` from the UIKit root, then `npm run build`.
 
 Call `singz_uikit::init(cx)` immediately after `gpui_kit::init(cx)` to apply the
 SingZ input palette, amber focus ring, caret and selection. Reapply it if the
@@ -44,3 +50,9 @@ Application screens own selection, menus, navigation and InputState subscription
 The `tokens` module exposes RGB surface/text/status colours, RGBA translucent
 materials, explicit font-family names, and stable stem IDs/names/colours. Call
 `rgb` for RGB tokens and `rgba` for translucent tokens.
+
+`window_buttons(maximized)` provides the frameless Windows header controls:
+46×52px minimize, maximize/restore and close buttons, with UIKit hover colors
+and native window-control hit areas. Add them after modal content so they stay
+available, and reserve 150px at the right of the host's 52px header. The host
+owns window creation, transparent titlebar policy, dragging and outer framing.

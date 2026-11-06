@@ -1,5 +1,9 @@
-//! Shared native SingZ controls. The host registers the explicit SingZ font
-//! faces before opening its first window; this crate never installs fonts.
+//! Shared native SingZ controls and bundled fonts. `init` registers the
+//! process-local faces; this crate never installs system fonts.
+pub mod fonts;
+pub use fonts::register_fonts;
+mod window_controls;
+pub use window_controls::{window_buttons, window_resize_edges};
 mod controls;
 mod icons;
 pub use icons::{colored_icon, icon, NativeIcon, TransportIcon};
@@ -11,6 +15,7 @@ pub use controls::*;
 /// Apply SingZ colours to native editable controls after `gpui_kit::init`.
 /// Reapply after a host theme change, which replaces the component palette.
 pub fn init(cx: &mut gpui_kit::App) {
+    register_fonts(cx).expect("register bundled SingZ UIKit fonts");
     use gpui_kit::{component::Theme, rgb, rgba};
     use tokens::*;
     let theme = Theme::global_mut(cx);

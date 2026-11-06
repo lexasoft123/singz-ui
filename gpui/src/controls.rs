@@ -793,7 +793,7 @@ pub fn zoom_chip(
         .font_family(DISPLAY_700)
         .font_weight(FontWeight::NORMAL)
         .cursor_pointer()
-        .child(crate::tracked_label(label, 0.).normal_line_height().wrap())
+        .child(crate::tracked_label(label, 0.).normal_line_height())
 }
 
 pub fn source_badge(label: impl Into<SharedString>, on: bool) -> Div {
