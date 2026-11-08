@@ -59,6 +59,20 @@
       "outlineAndLayoutSha256": "b115a7dbf98a3f23367f5da21ff5156413e86ec645f51e454cff0d10d655eff5"
     },
     {
+      "file": "Bricolage680.ttf",
+      "family": "SingZ Display 680",
+      "visualWeight": 680,
+      "nativeWeight": 680,
+      "windowsFile": "windows/Bricolage680.ttf",
+      "windowsNativeWeight": 400,
+      "windowsSha256": "36655e7b2520e58b87e40f6d9f08f350bf1c5f881401171173f3108b19226278",
+      "style": "normal",
+      "source": "sources/bricolage-grotesque-latin-wght-normal.woff2",
+      "sourceSha256": "a97804dc9fbe5fc972a08018c5eda4dab7ef2346f64c57e61419d05e6de4ea1c",
+      "sha256": "2aecb49b0a1a05027bd6b4e89b0a92dadc201bb82366313a9bcab485c34d3af8",
+      "outlineAndLayoutSha256": "8864a8e8efc5f239aa5ba2a473f354170e6d0ae92e1ae0b66d1d24d2f64f2b0d"
+    },
+    {
       "file": "Bricolage700.ttf",
       "family": "SingZ Display 700",
       "visualWeight": 700,
@@ -71,6 +85,34 @@
       "sourceSha256": "a97804dc9fbe5fc972a08018c5eda4dab7ef2346f64c57e61419d05e6de4ea1c",
       "sha256": "1d04d3eb79796ce4362956284058ddb08b2f6d2b70d70eb4b85d93d60c9a5ced",
       "outlineAndLayoutSha256": "61d7c5201964bc79646db20b57749c4d61d90cbbd6fc21afe0c1c35acf803ac8"
+    },
+    {
+      "file": "Bricolage720.ttf",
+      "family": "SingZ Display 720",
+      "visualWeight": 720,
+      "nativeWeight": 720,
+      "windowsFile": "windows/Bricolage720.ttf",
+      "windowsNativeWeight": 400,
+      "windowsSha256": "1c6c82547a174f3d027eea29380f462e9d73c06e82df191d97502b3d514f8855",
+      "style": "normal",
+      "source": "sources/bricolage-grotesque-latin-wght-normal.woff2",
+      "sourceSha256": "a97804dc9fbe5fc972a08018c5eda4dab7ef2346f64c57e61419d05e6de4ea1c",
+      "sha256": "33f09832cd1dea051dfa00350880e940c82f11e2bc648187d1721a3ec60d836f",
+      "outlineAndLayoutSha256": "55ac20f2d2a7367fa185e7532a25d2246c5b51e39c084ba65e2a633c277d7375"
+    },
+    {
+      "file": "Bricolage780.ttf",
+      "family": "SingZ Display 780",
+      "visualWeight": 780,
+      "nativeWeight": 780,
+      "windowsFile": "windows/Bricolage780.ttf",
+      "windowsNativeWeight": 400,
+      "windowsSha256": "2f788de663cf592168ee02867bc22597c483d0a95ab2d635fbe7f4516fbc0327",
+      "style": "normal",
+      "source": "sources/bricolage-grotesque-latin-wght-normal.woff2",
+      "sourceSha256": "a97804dc9fbe5fc972a08018c5eda4dab7ef2346f64c57e61419d05e6de4ea1c",
+      "sha256": "cfba44ef34abd3e3892ca84f0ff2fa7e0d02de732a73550af28ec380687782e1",
+      "outlineAndLayoutSha256": "e508f89f0656f430ffdee715360a0c5140a662c66a9913098f01970252eea669"
     },
     {
       "file": "Bricolage800.ttf",
@@ -115,6 +157,34 @@
       "outlineAndLayoutSha256": "bf07961e6200383b5049b79e6cbe1fc30e0893f2a246f44eae71254017e78676"
     },
     {
+      "file": "MartianMono600.ttf",
+      "family": "SingZ Mono 600",
+      "visualWeight": 600,
+      "nativeWeight": 600,
+      "windowsFile": "windows/MartianMono600.ttf",
+      "windowsNativeWeight": 400,
+      "windowsSha256": "16127fdf1a831b07688c4e66f18d9e55187cfd348d103e00ccf5ee5f52f0f320",
+      "style": "normal",
+      "source": "sources/martian-mono-latin-wght-normal.woff2",
+      "sourceSha256": "d0be3a78a854bcea53a9dc26b6620ba322eaa515ccbd92bb4b6ec20a3c91b291",
+      "sha256": "0cdd0365a95d4c2e6efdf22ba5ba02c40701128fa38ab260d82ad18c8bc39bfb",
+      "outlineAndLayoutSha256": "06ab9c4618a344eb4b0c6a0fceb7a36f4a8033c2a8e735b614b3eb7b2862bd5f"
+    },
+    {
+      "file": "MartianMono650.ttf",
+      "family": "SingZ Mono 650",
+      "visualWeight": 650,
+      "nativeWeight": 650,
+      "windowsFile": "windows/MartianMono650.ttf",
+      "windowsNativeWeight": 400,
+      "windowsSha256": "7ebd41a7629bd51021396c814bf3995caab4c4174898b75c1990a4d1241462e8",
+      "style": "normal",
+      "source": "sources/martian-mono-latin-wght-normal.woff2",
+      "sourceSha256": "d0be3a78a854bcea53a9dc26b6620ba322eaa515ccbd92bb4b6ec20a3c91b291",
+      "sha256": "d5a4f9fa05b775bdddea05f2a4f0e6000a25572ca602513a8f5bccdc5ec15746",
+      "outlineAndLayoutSha256": "2dc7d027c2af7baa42aa47d068e700dc1469cfa92d43aaa93500461dcbcd74a1"
+    },
+    {
       "file": "MartianMono700.ttf",
       "family": "SingZ Mono 700",
       "visualWeight": 700,
@@ -127,6 +197,34 @@
       "sourceSha256": "d0be3a78a854bcea53a9dc26b6620ba322eaa515ccbd92bb4b6ec20a3c91b291",
       "sha256": "2808c1f07ea19d131b98b4441deb359a6b554ab128cba6659d8df96b6ef36e74",
       "outlineAndLayoutSha256": "41bfe287fd2127c024488d057f38a4183a7c1d9a01942d3dad7d7fa20b300b49"
+    },
+    {
+      "file": "MartianMono720.ttf",
+      "family": "SingZ Mono 720",
+      "visualWeight": 720,
+      "nativeWeight": 720,
+      "windowsFile": "windows/MartianMono720.ttf",
+      "windowsNativeWeight": 400,
+      "windowsSha256": "7c89866912ff6106d1de00b5e7501cff388e078b54cbbedb8448131397977408",
+      "style": "normal",
+      "source": "sources/martian-mono-latin-wght-normal.woff2",
+      "sourceSha256": "d0be3a78a854bcea53a9dc26b6620ba322eaa515ccbd92bb4b6ec20a3c91b291",
+      "sha256": "639cb2e698f8979054bb5dfa51a59bbf0332a145905df765ef8988714b36bec7",
+      "outlineAndLayoutSha256": "764f4771fb00cb9c5517e35d8dafc9634deec67f95ee4de2d092731ea2b0b0d2"
+    },
+    {
+      "file": "MartianMono760.ttf",
+      "family": "SingZ Mono 760",
+      "visualWeight": 760,
+      "nativeWeight": 760,
+      "windowsFile": "windows/MartianMono760.ttf",
+      "windowsNativeWeight": 400,
+      "windowsSha256": "5930a3c2fc67041b97184f920f25058e373d9d051a05b816303c88a20d785580",
+      "style": "normal",
+      "source": "sources/martian-mono-latin-wght-normal.woff2",
+      "sourceSha256": "d0be3a78a854bcea53a9dc26b6620ba322eaa515ccbd92bb4b6ec20a3c91b291",
+      "sha256": "222a465a492e63d84c8e102c469f27b88830db977a36490af08e5dc08ece612e",
+      "outlineAndLayoutSha256": "ea7ac426a5ef76843bc2121bf5975e58251f0c66aab22d5190ae8ca8e1fd8080"
     }
   ]
 }

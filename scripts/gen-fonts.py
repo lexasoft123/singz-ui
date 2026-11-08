@@ -9,15 +9,15 @@ ROOT=Path(__file__).resolve().parents[1]
 ASSETS=ROOT/'gpui/assets/fonts'
 faces=[]
 for source,family,file,weights in [
- ('Bricolage','SingZ Display','bricolage-grotesque-latin-wght-normal.woff2',[400,500,600,650,700,800]),
- ('MartianMono','SingZ Mono','martian-mono-latin-wght-normal.woff2',[400,500,700])]:
+ ('Bricolage','SingZ Display','bricolage-grotesque-latin-wght-normal.woff2',[400,500,600,650,680,700,720,780,800]),
+ ('MartianMono','SingZ Mono','martian-mono-latin-wght-normal.woff2',[400,500,600,650,700,720,760])]:
  for weight in weights:
   path=ASSETS/'sources'/file
   font=TTFont(path);font.flavor=None;font.recalcTimestamp=False
   axes={a.axisTag:a.defaultValue for a in font['fvar'].axes};axes['wght']=weight
   font=instantiateVariableFont(font,axes,inplace=True)
   family_name=f'{family} {weight}'
-  style={400:'Regular',500:'Medium',600:'SemiBold',650:'DemiBold',700:'Bold',800:'ExtraBold'}[weight]
+  style={400:'Regular',500:'Medium',600:'SemiBold',650:'DemiBold',680:'DemiBoldPlus',780:'UltraBoldPlus',700:'Bold',720:'BoldPlus',760:'UltraBold',800:'ExtraBold'}[weight]
   names=font['name']
   for ident,value in [(1,family_name),(2,style),(4,family_name+' '+style),(6,family.replace(' ','')+'-'+style),(16,family_name),(17,style)]:
    for platform,encoding,lang in [(3,1,0x409),(1,0,0)]:names.setName(value,ident,platform,encoding,lang)

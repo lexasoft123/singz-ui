@@ -240,6 +240,7 @@ pub fn modal_scrim() -> Div {
         .items_center()
         .justify_center()
         .bg(rgba(0x0806039e))
+        .occlude()
 }
 
 pub fn modal_card() -> Div {
@@ -355,6 +356,16 @@ pub fn select_popup() -> Div {
         .occlude()
 }
 
+/// Native device/channel inventories may contain dozens of options.
+/// Keep row metrics intact and scroll the menu instead of compressing rows.
+pub fn scrolling_select_popup(id: impl Into<ElementId>) -> Stateful<Div> {
+    select_popup()
+        .id(id)
+        .max_h(px(280.))
+        .overflow_y_scroll()
+        .restrict_scroll_to_axis()
+}
+
 pub fn select_option(
     id: impl Into<ElementId>,
     label: impl Into<SharedString>,
@@ -447,6 +458,24 @@ pub fn small_ghost_pill(id: impl Into<ElementId>, label: impl Into<SharedString>
         .text_size(px(12.))
 }
 
+/// Controlled small ghost pill. Disabled presentation follows primitives.css;
+/// event/focus admission stays with the owning native control.
+pub fn small_ghost_pill_enabled(
+    id: impl Into<ElementId>,
+    label: impl Into<SharedString>,
+    enabled: bool,
+) -> Stateful<Div> {
+    if enabled {
+        return small_ghost_pill(id, label);
+    }
+    ghost_pill_base(id, label)
+        .px(px(12.))
+        .py(px(6.))
+        .text_size(px(12.))
+        .opacity(0.45)
+        .cursor_default()
+}
+
 #[derive(Clone)]
 struct SliderDrag(ElementId);
 
@@ -458,6 +487,16 @@ pub fn range_slider(
     min: f32,
     max: f32,
     on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
+    range_slider_style(id, value, min, max, on_change, false)
+}
+pub(crate) fn range_slider_style(
+    id: impl Into<ElementId>,
+    value: f32,
+    min: f32,
+    max: f32,
+    on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
+    native_track: bool,
 ) -> Stateful<Div> {
     use std::{cell::Cell, rc::Rc};
     let bounds = Rc::new(Cell::new(Bounds::<Pixels>::default()));
@@ -476,16 +515,28 @@ pub fn range_slider(
         .on_mouse_down(MouseButton::Left, move |e, w, cx| {
             let b = down_bounds.get();
             let x = f32::from(e.position.x - b.left());
-            let width = f32::from(b.size.width).max(1.);
+            let (x, width) = if native_track {
+                (x - 8., (f32::from(b.size.width) - 16.).max(1.))
+            } else {
+                (x, f32::from(b.size.width).max(1.))
+            };
             down_callback(min + (max - min) * (x / width).clamp(0., 1.), w, cx);
         })
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
-        .on_drag(SliderDrag(drag_id.clone()), |_, _, _, cx| cx.new(|_| EmptyView))
+        .on_drag(SliderDrag(drag_id.clone()), |_, _, _, cx| {
+            cx.new(|_| EmptyView)
+        })
         .on_drag_move(move |e: &DragMoveEvent<SliderDrag>, w, cx| {
-            if e.drag(cx).0 != drag_id { return; }
+            if e.drag(cx).0 != drag_id {
+                return;
+            }
             let b = e.bounds;
             let x = f32::from(e.event.position.x - b.left());
-            let width = f32::from(b.size.width).max(1.);
+            let (x, width) = if native_track {
+                (x - 8., (f32::from(b.size.width) - 16.).max(1.))
+            } else {
+                (x, f32::from(b.size.width).max(1.))
+            };
             callback(min + (max - min) * (x / width).clamp(0., 1.), w, cx);
         })
         .on_click(|_, _, cx| cx.stop_propagation())
@@ -497,6 +548,42 @@ pub fn range_slider(
                 },
                 move |_, b, w, _| {
                     let width = b.size.width;
+                    if native_track {
+                        let center = b.left() + px(8.) + (width - px(16.)).max(px(0.)) * fraction;
+                        let track = Bounds::new(
+                            point(b.left() + px(1.), b.top() + px(4.5)),
+                            size((width - px(2.)).max(px(0.)), px(7.)),
+                        );
+                        w.paint_quad(quad(
+                            track,
+                            px(3.5),
+                            rgb(0x3b3b3b),
+                            px(1.),
+                            rgb(0x898989),
+                            BorderStyle::Solid,
+                        ));
+                        let fill_bounds = Bounds::new(
+                            track.origin + point(px(1.), px(1.)),
+                            size((center - track.left()).max(px(0.)), px(5.)),
+                        );
+                        w.paint_quad(quad(
+                            fill_bounds,
+                            px(2.5),
+                            rgb(ACCENT),
+                            px(0.),
+                            rgb(ACCENT),
+                            BorderStyle::Solid,
+                        ));
+                        w.paint_quad(quad(
+                            Bounds::new(point(center - px(8.), b.top()), size(px(16.), px(16.))),
+                            px(8.),
+                            rgb(ACCENT),
+                            px(0.),
+                            rgb(ACCENT),
+                            BorderStyle::Solid,
+                        ));
+                        return;
+                    }
                     let y = b.top() + px(7.);
                     w.paint_quad(fill(
                         Bounds::new(point(b.left(), y), size(width, px(4.))),
@@ -632,7 +719,7 @@ pub fn catalog_delete(id: impl Into<ElementId>) -> Stateful<Div> {
         .child("✕")
 }
 
-pub fn round_button(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
+pub(crate) fn round_button_surface(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
     div()
         .id(id)
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
@@ -649,7 +736,23 @@ pub fn round_button(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
         .text_color(rgb(if on { ACCENT } else { DIM }))
         .bg(rgba(if on { ACCENT_SOFT } else { 0 }))
         .cursor_pointer()
+}
+
+pub fn round_button(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
+    round_button_surface(id, on)
         .hover(|s| s.text_color(rgb(TEXT)).border_color(rgba(LINE_STRONG)))
+}
+
+/// Production `.round-ghost.met.active`: its accent survives hover and has a
+/// 14px CSS outer glow. Other round controls keep their ordinary hover treatment.
+pub fn metronome_button(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
+    if on {
+        round_button_surface(id, true)
+            .shadow(vec![glow(ACCENT, 0.15, 14.)])
+            .hover(|s| s.text_color(rgb(ACCENT)).border_color(rgba(ACCENT_LINE)))
+    } else {
+        round_button(id, false)
+    }
 }
 
 pub fn play_button(id: impl Into<ElementId>, playing: bool) -> Stateful<Div> {
@@ -688,7 +791,7 @@ pub fn play_button(id: impl Into<ElementId>, playing: bool) -> Stateful<Div> {
         .cursor_pointer()
 }
 
-pub fn transport_chip(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
+pub(crate) fn transport_chip_surface(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
     div()
         .id(id)
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
@@ -707,8 +810,12 @@ pub fn transport_chip(id: impl Into<ElementId>, label: impl Into<SharedString>) 
         .font_family(DISPLAY_700)
         .font_weight(FontWeight::NORMAL)
         .cursor_pointer()
-        .hover(|s| s.border_color(rgba(LINE_STRONG)).text_color(rgb(TEXT)))
         .child(label.into())
+}
+
+pub fn transport_chip(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
+    transport_chip_surface(id,label)
+        .hover(|s|s.border_color(rgba(LINE_STRONG)).text_color(rgb(TEXT)))
 }
 
 pub fn transport_badge(
@@ -1173,9 +1280,13 @@ pub fn stem_volume(
             down_callback(ratio.clamp(0., 1.), w, cx);
         })
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
-        .on_drag(SliderDrag(drag_id.clone()), |_, _, _, cx| cx.new(|_| EmptyView))
+        .on_drag(SliderDrag(drag_id.clone()), |_, _, _, cx| {
+            cx.new(|_| EmptyView)
+        })
         .on_drag_move(move |e: &DragMoveEvent<SliderDrag>, w, cx| {
-            if e.drag(cx).0 != drag_id { return; }
+            if e.drag(cx).0 != drag_id {
+                return;
+            }
             let b = e.bounds;
             let ratio = (f32::from(e.event.position.x - b.left()) - 5.5)
                 / (f32::from(b.size.width) - 11.).max(1.);
@@ -1368,13 +1479,10 @@ mod scrollbar_tests {
             ),
             Some(Bounds::new(point(px(60.), px(90.)), size(px(50.), px(10.))))
         );
-        assert!(scrollbar_thumb_bounds(
-            viewport,
-            point(px(0.), px(0.)),
-            point(px(0.), px(0.)),
-            true
-        )
-        .is_none());
+        assert!(
+            scrollbar_thumb_bounds(viewport, point(px(0.), px(0.)), point(px(0.), px(0.)), true)
+                .is_none()
+        );
     }
 }
 
@@ -1440,4 +1548,207 @@ pub fn persistent_monitor_status(
                 )
                 .child(crate::tracked_text(label, DISPLAY_650, 11., 0., TEXT)),
         )
+}
+
+/// Cached pitch-match sprite. One image pipeline paints both the dot and halo;
+/// a live trail must not alternate shadow/quad pipelines hundreds of times.
+pub fn paint_pitch_match_dot(
+    window: &mut Window,
+    center: Point<Pixels>,
+    radius: f32,
+    matched: bool,
+) -> anyhow::Result<()> {
+    use std::{
+        collections::HashMap,
+        sync::{Arc, Mutex, OnceLock},
+    };
+    type Key = (u16, u16, bool);
+    static CACHE: OnceLock<Mutex<HashMap<Key, Arc<RenderImage>>>> = OnceLock::new();
+    let scale = window.scale_factor();
+    let key = (
+        (radius.clamp(2.5, 4.5) * 64.).round() as u16,
+        (scale * 64.).round() as u16,
+        matched,
+    );
+    let mut cache = CACHE
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    let image = if let Some(image) = cache.get(&key) {
+        image.clone()
+    } else {
+        if cache.len() >= 16 {
+            cache.clear();
+        }
+        let side = (40. * scale).ceil() as u32;
+        let mut pixels = image::RgbaImage::new(side, side);
+        let radius = key.0 as f32 / 64.;
+        let mut core = image::GrayImage::new(side, side);
+        for (x, y, pixel) in core.enumerate_pixels_mut() {
+            let dx = (x as f32 + 0.5) / scale - 20.;
+            let dy = (y as f32 + 0.5) / scale - 20.;
+            let distance = (dx * dx + dy * dy).sqrt();
+            *pixel = image::Luma([
+                (((radius - distance) * scale + 0.5).clamp(0., 1.) * 255.).round() as u8,
+            ]);
+        }
+        let halo = if matched {
+            Some(image::imageops::blur(&core, 3. * scale))
+        } else {
+            None
+        };
+        for (x, y, pixel) in pixels.enumerate_pixels_mut() {
+            let coverage = core.get_pixel(x, y)[0] as f32 / 255.;
+            let shadow = halo
+                .as_ref()
+                .map_or(0., |halo| halo.get_pixel(x, y)[0] as f32 / 255.);
+            let alpha = if matched {
+                coverage + (1. - coverage) * shadow
+            } else {
+                coverage * 0.7
+            };
+            let [r, g, b] = if matched {
+                [0x58, 0xd6, 0x8a]
+            } else {
+                [0xff, 0x7a, 0x5c]
+            };
+            *pixel = image::Rgba([b, g, r, (alpha * 255.).round() as u8]);
+        }
+        let image = Arc::new(RenderImage::new(vec![image::Frame::new(pixels)]));
+        cache.insert(key, image.clone());
+        image
+    };
+    drop(cache);
+    let bounds = Bounds::new(center - point(px(20.), px(20.)), size(px(40.), px(40.)));
+    window.paint_image(bounds, bounds, Corners::default(), image, 0, false)
+}
+
+/// Inline song/project title editor from App.tsx (`.title-input`).
+pub fn title_input(state: &Entity<InputState>, viewport_width: f32) -> Input {
+    let input = Input::new(state)
+        .focus_bordered(false)
+        .w(px(360_f32.min(viewport_width * 0.4)))
+        .min_w_0()
+        .px(px(10.))
+        .py(px(5.))
+        .rounded(px(9.))
+        .border_1()
+        .border_color(rgba(LINE_STRONG))
+        .bg(rgb(PANEL_DEEP))
+        .text_color(rgb(TEXT))
+        .font_family(DISPLAY_500)
+        .font_weight(FontWeight::NORMAL)
+        .text_size(px(13.))
+        .line_height(px(15.5));
+    Styled::h(input, px(27.5))
+}
+/// Source monitor group with independently focusable status and Stop buttons.
+/// The host attaches handlers/focus handles, then inserts both buttons in shell.
+pub struct PersistentMonitorControl {
+    pub shell: Stateful<Div>,
+    pub status: Stateful<Div>,
+    pub stop: Stateful<Div>,
+}
+pub fn persistent_monitor_control(
+    id: impl Into<ElementId>,
+    label: impl Into<SharedString>,
+    attention: bool,
+    stop_enabled: bool,
+) -> PersistentMonitorControl {
+    let focus_ring = |s: StyleRefinement| {
+        s.shadow(vec![BoxShadow {
+            color: rgb(ACCENT).into(),
+            offset: point(px(0.), px(0.)),
+            blur_radius: px(0.),
+            spread_radius: px(2.),
+            inset: true,
+        }])
+    };
+    let shell = div()
+        .id(id)
+        .flex()
+        .items_stretch()
+        .flex_shrink_1()
+        .min_w_0()
+        .min_h(px(28.))
+        .rounded_full()
+        .overflow_hidden()
+        .border_1()
+        .border_color(if attention {
+            rgb(0xef695a).alpha(0.65)
+        } else {
+            rgb(ACCENT).alpha(0.5)
+        })
+        .bg(rgb(ACCENT).alpha(0.1))
+        .shadow(vec![glow(ACCENT, 0.08, 18.)])
+        .text_color(rgb(TEXT))
+        .text_size(px(11.))
+        .line_height(px(13.5))
+        .font_family(DISPLAY_650)
+        .font_weight(FontWeight::NORMAL);
+    let status = div()
+        .id("persistent-monitor-status")
+        .flex()
+        .items_center()
+        .flex_shrink_0()
+        .whitespace_nowrap()
+        .gap(px(7.))
+        .py(px(4.))
+        .pl(px(10.))
+        .pr(px(9.))
+        .bg(rgba(0))
+        .cursor_pointer()
+        .on_mouse_move(|_, _, cx| cx.stop_propagation())
+        .hover(|s| s.bg(rgb(ACCENT).alpha(0.12)))
+        .focus_visible(focus_ring)
+        .child(
+            div()
+                .size(px(7.))
+                .flex_none()
+                .rounded_full()
+                .bg(rgb(if attention { 0xef695a } else { ACCENT }))
+                .shadow(vec![BoxShadow {
+                    color: rgb(ACCENT).alpha(0.13).into(),
+                    offset: point(px(0.), px(0.)),
+                    blur_radius: px(0.),
+                    spread_radius: px(3.),
+                    inset: false,
+                }]),
+        )
+        .child(crate::tracked_text(label, DISPLAY_650, 11., 0., TEXT));
+    let mut stop = div()
+        .id("persistent-monitor-stop")
+        .flex()
+        .items_center()
+        .flex_none()
+        .whitespace_nowrap()
+        .py(px(4.))
+        .pl(px(9.))
+        .pr(px(10.))
+        .border_l_1()
+        .border_color(rgb(ACCENT).alpha(0.28))
+        .text_color(rgb(if stop_enabled { ACCENT } else { FAINT }))
+        .bg(rgba(0))
+        .on_mouse_move(|_, _, cx| cx.stop_propagation())
+        .child(crate::tracked_text(
+            "Stop",
+            DISPLAY_650,
+            11.,
+            0.,
+            if stop_enabled { ACCENT } else { FAINT },
+        ));
+    if stop_enabled {
+        stop = stop
+            .cursor_pointer()
+            .hover(|s| s.bg(rgb(ACCENT).alpha(0.12)))
+            .focus_visible(focus_ring);
+    } else {
+        // GPUI's platform cursor enum has no CSS `wait` cursor yet.
+        stop = stop.cursor_default();
+    }
+    PersistentMonitorControl {
+        shell,
+        status,
+        stop,
+    }
 }

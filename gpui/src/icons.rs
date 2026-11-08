@@ -12,6 +12,17 @@ pub enum TransportIcon {
     Mic,
     Speaker,
     Chevron,
+    TrainingNote,
+    TrainingInterval,
+    TrainingChord,
+    TrainingArpeggio,
+    TrainingScale,
+    TrainingSettings,
+    TrainingProgress,
+    TrainingPiano,
+    TrainingReplay,
+    TrainingSkip,
+
 }
 pub struct NativeIcon {
     kind: TransportIcon,
@@ -85,6 +96,16 @@ impl RenderOnce for NativeIcon {
                 20,
                 r#"<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h3l4-3v12l-4-3H3z"/><path d="M13 7a4 4 0 0 1 0 6"/><path d="M16 4a8 8 0 0 1 0 12"/></g>"#,
             ),
+            TransportIcon::TrainingNote => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5v13M15 5l6-2v5l-6 2"/><ellipse cx="11.5" cy="18" rx="3.5" ry="2.5"/></g>"#),
+            TransportIcon::TrainingInterval => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8v11M8 8l4-1M20 4v11M20 4l4-1M10 3h7m-2-2 2 2-2 2"/><ellipse cx="5" cy="19" rx="3" ry="2"/><ellipse cx="17" cy="15" rx="3" ry="2"/></g>"#),
+            TransportIcon::TrainingChord => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14M16 5v11M24 5v8M8 5h16"/><ellipse cx="5" cy="19" rx="3" ry="2"/><ellipse cx="13" cy="16" rx="3" ry="2"/><ellipse cx="21" cy="13" rx="3" ry="2"/></g>"#),
+            TransportIcon::TrainingArpeggio => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 10v13M16 6v12M25.5 2v12M6.5 10l19-8"/><g fill="currentColor" stroke="none"><ellipse cx="4.5" cy="23" rx="3" ry="2.7"/><ellipse cx="14" cy="18" rx="3" ry="2.7"/><ellipse cx="23.5" cy="14" rx="3" ry="2.7"/></g></g>"#),
+            TransportIcon::TrainingScale => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22h5v-5h5v-5h5V7h6M3 10 13 2m-5 0h5v5"/></g>"#),
+            TransportIcon::TrainingSettings => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h3M12 7h13M3 14h13M22 14h3M3 21h4M13 21h12"/><circle cx="9" cy="7" r="3"/><circle cx="19" cy="14" r="3"/><circle cx="10" cy="21" r="3"/></g>"#),
+            TransportIcon::TrainingProgress => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 23v-4M14 23v-8M21 23v-12M3 25h22M4 11l7-5 6 3 7-6M18 3h6v6"/></g>"#),
+            TransportIcon::TrainingReplay => (24,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9a10 10 0 1 1-1 9M5 3v6h6"/></g>"#),
+            TransportIcon::TrainingSkip => (24,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 5 12 9-12 9ZM22 5v18"/></g>"#),
+            TransportIcon::TrainingPiano => (30,28,r#"<g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="24" height="19" rx="3"/><path d="M8 4v19M14 4v19M20 4v19"/><path d="M8 5v8M20 5v8" stroke-width="4"/></g>"#),
             TransportIcon::Chevron => (8, 8, r#"<path d="M1 2h6L4 6Z"/>"#),
         };
         let edge = self.edge.unwrap_or(default_edge);
