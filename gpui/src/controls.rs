@@ -1251,6 +1251,49 @@ pub fn stem_chip(
         .child(label)
 }
 
+/// Attach source song-button keyboard behavior without changing its painter.
+/// Disabled buttons leave the Tab sequence; the host restores focus when an
+/// already-focused button becomes disabled. Song capture reserves Space/arrows.
+pub fn song_button_with_focus(
+    button: Stateful<Div>,
+    focus: FocusHandle,
+    enabled: bool,
+    on_press: impl Fn(&mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
+    if !enabled { return button; }
+    let callback = std::rc::Rc::new(on_press);
+    let key_callback = callback.clone();
+    let down_focus = focus.clone();
+    let key_focus = focus.clone();
+    crate::lyrics_sidebar_focus(button, focus.clone())
+        .track_focus(&focus)
+        .tab_index(0)
+        .on_mouse_down(MouseButton::Left, move |_, w, cx| {
+            down_focus.focus(w, cx);
+            w.prevent_default();
+        })
+        .capture_key_down(move |event, w, cx| {
+            if event.keystroke.key == "enter" && key_focus.is_focused(w) {
+                w.prevent_default();
+                key_callback(w, cx);
+                cx.stop_propagation();
+            }
+        })
+        .on_click(move |_, w, cx| callback(w, cx))
+}
+
+/// The same source M/S chip with opt-in, persistent host-owned button focus.
+pub fn stem_chip_with_focus(
+    id: impl Into<ElementId>,
+    label: impl Into<SharedString>,
+    active: bool,
+    color: u32,
+    focus: FocusHandle,
+    on_press: impl Fn(&mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
+    song_button_with_focus(stem_chip(id, label, active, color), focus, true, on_press)
+}
+
 /// Source `.vol` rail and thumb, with HTML range-input thumb travel geometry.
 pub fn stem_volume(
     id: impl Into<ElementId>,
