@@ -7,6 +7,8 @@ pub use window_controls::{window_buttons, window_resize_edges};
 mod controls;
 mod training;
 pub use training::*;
+mod training_feedback_controls;
+pub use training_feedback_controls::training_result_acknowledgement;
 mod icons;
 pub use icons::{NativeIcon, TransportIcon, colored_icon, icon};
 mod typography;
