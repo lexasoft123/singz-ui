@@ -11,6 +11,7 @@ pub enum TransportIcon {
     CarryLine,
     Mic,
     Speaker,
+    SpeakerMuted,
     Chevron,
     TrainingNote,
     TrainingInterval,
@@ -91,6 +92,7 @@ impl RenderOnce for NativeIcon {
                 14,
                 r#"<path d="M7 1a2.6 2.6 0 0 0-2.6 2.6v3a2.6 2.6 0 1 0 5.2 0v-3A2.6 2.6 0 0 0 7 1Z"/><path d="M2.7 6.4a.65.65 0 0 1 1.3.13v.07a3 3 0 0 0 6 0v-.07a.65.65 0 0 1 1.3-.13v.2a4.3 4.3 0 0 1-3.65 4.25v1.3h1.7a.65.65 0 1 1 0 1.3H4.65a.65.65 0 1 1 0-1.3h1.7v-1.3A4.3 4.3 0 0 1 2.7 6.6v-.2Z"/>"#,
             ),
+            TransportIcon::SpeakerMuted => (16,20,r#"<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h3l4-3v12l-4-3H3z"/><path d="m14 8 4 4m0-4-4 4"/></g>"#),
             TransportIcon::Speaker => (
                 16,
                 20,

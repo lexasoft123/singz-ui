@@ -95,3 +95,9 @@ pub use drive_controls::*;
 
 mod language_controls;
 pub use language_controls::*;
+
+mod song_output;
+pub use song_output::*;
+
+mod catalog_controls;
+pub use catalog_controls::*;
