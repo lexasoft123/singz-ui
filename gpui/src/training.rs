@@ -158,6 +158,45 @@ pub fn training_range(
 ) -> Stateful<Div> {
     crate::controls::range_slider_style(id, value, min, max, on_change, true)
 }
+/// Training's existing range painter with persistent focus and stepped keys.
+/// The live value accumulates multiple inputs before the next render.
+pub fn training_range_with_focus(
+    id: impl Into<ElementId>, value: f32, min: f32, max: f32, step: f32,
+    focus: FocusHandle, enabled: bool,
+    on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
+    use std::{cell::Cell, rc::Rc};
+    let live = Rc::new(Cell::new(value));
+    let pointer_live = live.clone();
+    let callback = Rc::new(on_change);
+    let pointer_callback = callback.clone();
+    let element = training_range(id, value, min, max, move |next, w, cx| {
+        if enabled {
+            let next = crate::controls::settings_range_value(next, min, max, step);
+            pointer_live.set(next);
+            pointer_callback(next, w, cx);
+        }
+    });
+    if !enabled { return element; }
+    let pointer_focus = focus.clone();
+    let key_focus = focus.clone();
+    crate::lyrics_sidebar_focus(element, focus.clone())
+        .track_focus(&focus).tab_index(0)
+        .on_mouse_down(MouseButton::Left, move |_, w, cx| {
+            pointer_focus.focus(w, cx);
+            w.prevent_default();
+        })
+        .capture_key_down(move |event, w, cx| {
+            if !key_focus.is_focused(w) || event.keystroke.modifiers.modified() { return; }
+            let before = live.get();
+            if let Some(next) = crate::controls::settings_range_key(before, &event.keystroke.key, min, max, step) {
+                live.set(next);
+                if next != before { callback(next, w, cx); }
+                w.prevent_default();
+                cx.stop_propagation();
+            }
+        })
+}
 pub fn training_round_button(
     id: impl Into<ElementId>,
     label: impl Into<SharedString>,

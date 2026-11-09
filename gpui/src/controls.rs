@@ -1914,11 +1914,11 @@ fn settings_activation_key(key: &str, modified: bool) -> bool {
     !modified && matches!(key, "enter" | "space")
 }
 
-fn settings_range_value(value: f32, min: f32, max: f32, step: f32) -> f32 {
+pub(crate) fn settings_range_value(value: f32, min: f32, max: f32, step: f32) -> f32 {
     (min + ((value.clamp(min, max) - min) / step).round() * step).clamp(min, max)
 }
 
-fn settings_range_key(value: f32, key: &str, min: f32, max: f32, step: f32) -> Option<f32> {
+pub(crate) fn settings_range_key(value: f32, key: &str, min: f32, max: f32, step: f32) -> Option<f32> {
     if !value.is_finite() || !min.is_finite() || !max.is_finite() || !step.is_finite() || min >= max || step <= 0. {
         return None;
     }
