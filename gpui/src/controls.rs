@@ -1869,3 +1869,140 @@ pub fn persistent_monitor_control(
         stop,
     }
 }
+
+/// Keyboard/focus admission for Settings buttons, checkboxes and select fields.
+/// Pass the complete label hitbox for a checkbox. Keep host callbacks off the
+/// supplied painter: pointer and keyboard activation share `on_activate` here.
+/// The host owns persistent focus handles, Tab order and select-popup keys.
+pub fn settings_control_with_focus(
+    control: Stateful<Div>,
+    focus: FocusHandle,
+    enabled: bool,
+    on_activate: impl Fn(&mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
+    if !enabled { return control; }
+    let callback = std::rc::Rc::new(on_activate);
+    let key_callback = callback.clone();
+    let down_focus = focus.clone();
+    let key_focus = focus.clone();
+    crate::lyrics_sidebar_focus(control, focus.clone())
+        .track_focus(&focus)
+        .tab_index(0)
+        .on_mouse_down(MouseButton::Left, move |_, w, cx| {
+            down_focus.focus(w, cx);
+            w.prevent_default();
+        })
+        .capture_key_down(move |event, w, cx| {
+            if key_focus.is_focused(w) && settings_activation_key(&event.keystroke.key, event.keystroke.modifiers.modified()) {
+                // GPUI normally synthesizes on_click on KeyUp. Suppress its
+                // default KeyDown admission and invoke only this shared path.
+                w.prevent_default();
+                if !event.is_held { key_callback(w, cx); }
+                cx.stop_propagation();
+            }
+        })
+        .capture_key_up(move |event, w, cx| {
+            if settings_activation_key(&event.keystroke.key, event.keystroke.modifiers.modified()) {
+                w.prevent_default();
+                cx.stop_propagation();
+            }
+        })
+        .on_click(move |_, w, cx| callback(w, cx))
+}
+
+fn settings_activation_key(key: &str, modified: bool) -> bool {
+    !modified && matches!(key, "enter" | "space")
+}
+
+fn settings_range_value(value: f32, min: f32, max: f32, step: f32) -> f32 {
+    (min + ((value.clamp(min, max) - min) / step).round() * step).clamp(min, max)
+}
+
+fn settings_range_key(value: f32, key: &str, min: f32, max: f32, step: f32) -> Option<f32> {
+    if !value.is_finite() || !min.is_finite() || !max.is_finite() || !step.is_finite() || min >= max || step <= 0. {
+        return None;
+    }
+    let next = match key {
+        "left" | "down" => value - step,
+        "right" | "up" => value + step,
+        "home" => min,
+        "end" => max,
+        _ => return None,
+    };
+    Some(settings_range_value(next, min, max, step))
+}
+
+/// The existing Settings range painter/drag geometry with source HTML range
+/// keyboard behavior. A per-render live value accumulates bursts before paint.
+/// For monitor gain use min=-60, max=0, step=1, matching SettingsModal.tsx.
+pub fn settings_range_slider_with_focus(
+    id: impl Into<ElementId>,
+    value: f32,
+    min: f32,
+    max: f32,
+    step: f32,
+    focus: FocusHandle,
+    enabled: bool,
+    on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
+    use std::{cell::Cell, rc::Rc};
+    let live = Rc::new(Cell::new(value));
+    let pointer_live = live.clone();
+    let callback = Rc::new(on_change);
+    let pointer_callback = callback.clone();
+    let element = range_slider(id, value, min, max, move |next, w, cx| {
+        if enabled {
+            let next = settings_range_value(next, min, max, step);
+            pointer_live.set(next);
+            pointer_callback(next, w, cx);
+        }
+    });
+    if !enabled { return element; }
+    let pointer_focus = focus.clone();
+    let key_focus = focus.clone();
+    crate::lyrics_sidebar_focus(element, focus.clone())
+        .track_focus(&focus)
+        .tab_index(0)
+        .on_mouse_down(MouseButton::Left, move |_, w, cx| {
+            pointer_focus.focus(w, cx);
+            w.prevent_default();
+        })
+        .capture_key_down(move |event, w, cx| {
+            if !key_focus.is_focused(w) || event.keystroke.modifiers.modified() { return; }
+            let before = live.get();
+            if let Some(next) = settings_range_key(before, &event.keystroke.key, min, max, step) {
+                live.set(next);
+                if next != before { callback(next, w, cx); }
+                w.prevent_default();
+                cx.stop_propagation();
+            }
+        })
+}
+
+#[cfg(test)]
+mod settings_keyboard_policy_tests {
+    use super::{settings_activation_key, settings_range_key};
+
+    #[test]
+    fn settings_activation_owns_only_unmodified_enter_and_space() {
+        assert!(settings_activation_key("enter", false));
+        assert!(settings_activation_key("space", false));
+        for key in ["tab", "escape", "left", "right", "s"] {
+            assert!(!settings_activation_key(key, false));
+        }
+        assert!(!settings_activation_key("enter", true));
+        assert!(!settings_activation_key("space", true));
+    }
+
+    #[test]
+    fn gain_bursts_accumulate_and_home_end_clamp() {
+        let mut value = -18.;
+        for _ in 0..3 { value = settings_range_key(value, "right", -60., 0., 1.).unwrap(); }
+        assert_eq!(value, -15.);
+        assert_eq!(settings_range_key(value, "home", -60., 0., 1.), Some(-60.));
+        assert_eq!(settings_range_key(-60., "left", -60., 0., 1.), Some(-60.));
+        assert_eq!(settings_range_key(value, "end", -60., 0., 1.), Some(0.));
+        assert_eq!(settings_range_key(0., "up", -60., 0., 1.), Some(0.));
+        assert_eq!(settings_range_key(-18., "space", -60., 0., 1.), None);
+    }
+}
