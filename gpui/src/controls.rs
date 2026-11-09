@@ -1258,6 +1258,41 @@ pub fn stem_volume(
     color: u32,
     on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
 ) -> Stateful<Div> {
+    stem_volume_impl(id, value, color, None, on_change)
+}
+
+/// The same source rail/thumb with persistent host-owned range-input focus.
+/// Relative keys use a live value so events arriving before repaint accumulate.
+pub fn stem_volume_with_focus(
+    id: impl Into<ElementId>,
+    value: f32,
+    color: u32,
+    focus: FocusHandle,
+    on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
+    stem_volume_impl(id, value, color, Some(focus), on_change)
+}
+
+fn stem_range_key(value: &std::cell::Cell<f32>, key: &str) -> Option<f32> {
+    let current = (value.get().clamp(0., 1.) * 100.).round() as i16;
+    let next = match key {
+        "left" | "down" => current - 1,
+        "right" | "up" => current + 1,
+        "home" => 0,
+        "end" => 100,
+        _ => return None,
+    }.clamp(0, 100) as f32 / 100.;
+    value.set(next);
+    Some(next)
+}
+
+fn stem_volume_impl(
+    id: impl Into<ElementId>,
+    value: f32,
+    color: u32,
+    focus: Option<FocusHandle>,
+    on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
+) -> Stateful<Div> {
     use std::{cell::Cell, rc::Rc};
     let bounds = Rc::new(Cell::new(Bounds::<Pixels>::default()));
     let callback: Rc<dyn Fn(f32, &mut Window, &mut App)> = Rc::new(on_change);
@@ -1266,7 +1301,13 @@ pub fn stem_volume(
     let id: ElementId = id.into();
     let drag_id = id.clone();
     let value = value.clamp(0., 1.);
-    div()
+    let live = Rc::new(Cell::new(value));
+    let down_live = live.clone();
+    let key_live = live.clone();
+    let key_callback = callback.clone();
+    let down_focus = focus.clone();
+    let keyboard = focus.is_some();
+    let element = div()
         .id(id)
         .relative()
         .flex_1()
@@ -1277,7 +1318,10 @@ pub fn stem_volume(
             let b = down_bounds.get();
             let ratio = (f32::from(e.position.x - b.left()) - 5.5)
                 / (f32::from(b.size.width) - 11.).max(1.);
-            down_callback(ratio.clamp(0., 1.), w, cx);
+            if let Some(focus) = &down_focus { focus.focus(w, cx); w.prevent_default(); }
+            let next = if keyboard { (ratio.clamp(0., 1.) * 100.).round() / 100. } else { ratio.clamp(0., 1.) };
+            down_live.set(next);
+            down_callback(next, w, cx);
         })
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_drag(SliderDrag(drag_id.clone()), |_, _, _, cx| {
@@ -1290,7 +1334,17 @@ pub fn stem_volume(
             let b = e.bounds;
             let ratio = (f32::from(e.event.position.x - b.left()) - 5.5)
                 / (f32::from(b.size.width) - 11.).max(1.);
-            callback(ratio.clamp(0., 1.), w, cx);
+            let next = if keyboard { (ratio.clamp(0., 1.) * 100.).round() / 100. } else { ratio.clamp(0., 1.) };
+            live.set(next);
+            callback(next, w, cx);
+        })
+        .on_key_down(move |event, w, cx| {
+            if !keyboard { return; }
+            let before = key_live.get();
+            if let Some(next) = stem_range_key(&key_live, &event.keystroke.key) {
+                if next != before { key_callback(next, w, cx); }
+                cx.stop_propagation();
+            }
         })
         .on_click(|_, _, cx| cx.stop_propagation())
         .child(
@@ -1333,7 +1387,27 @@ pub fn stem_volume(
             )
             .absolute()
             .inset_0(),
-        )
+        );
+    if let Some(focus) = focus { element.track_focus(&focus).tab_index(0) } else { element }
+}
+
+#[cfg(test)]
+mod stem_volume_keyboard_tests {
+    use super::stem_range_key;
+    use std::cell::Cell;
+    #[test]
+    fn stem_range_keys_accumulate_before_repaint_and_clamp_like_html() {
+        let value = Cell::new(0.5);
+        for expected in [0.51, 0.52, 0.53] {
+            assert!((stem_range_key(&value, "right").unwrap() - expected).abs() < 0.000001);
+        }
+        assert_eq!(stem_range_key(&value, "end"), Some(1.));
+        assert_eq!(stem_range_key(&value, "up"), Some(1.));
+        assert_eq!(stem_range_key(&value, "home"), Some(0.));
+        assert_eq!(stem_range_key(&value, "down"), Some(0.));
+        assert_eq!(stem_range_key(&value, "space"), None);
+        assert_eq!(stem_range_key(&value, "enter"), None);
+    }
 }
 
 /// Production monitoring feature label: 8px bold mono / 8px line / .72px tracking.

@@ -101,3 +101,6 @@ pub use song_output::*;
 
 mod catalog_controls;
 pub use catalog_controls::*;
+
+mod lyrics_countdown_controls;
+pub use lyrics_countdown_controls::*;

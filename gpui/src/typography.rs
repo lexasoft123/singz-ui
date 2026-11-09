@@ -108,7 +108,7 @@ fn text_diagnostics(label: &str, phase: &str, message: impl FnOnce() -> String) 
 /// round independently in device pixels; fractional leading is floored after
 /// quantizing the physical line height to the CSS 1/64 grid. `None` is CSS
 /// normal, not an assumed 1.2 × font-size multiplier.
-fn css_line_metrics(ascent: f32, descent: f32, line_height: Option<f32>, scale: f32) -> (f32, f32) {
+pub(crate) fn css_line_metrics(ascent: f32, descent: f32, line_height: Option<f32>, scale: f32) -> (f32, f32) {
     let ascent = (ascent * scale).round();
     let descent = (descent * scale).round();
     let height = line_height.unwrap_or((ascent + descent) / scale);
