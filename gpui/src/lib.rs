@@ -109,3 +109,6 @@ pub use lyrics_countdown_controls::*;
 
 mod runtime_graph_controls;
 pub use runtime_graph_controls::*;
+
+mod drive_projects_controls;
+pub use drive_projects_controls::*;
