@@ -19,7 +19,9 @@ pub fn song_output_mute(id:impl Into<ElementId>,muted:bool)->Stateful<Div> {
 }
 pub fn song_output_clip(id:impl Into<ElementId>,label:impl Into<SharedString>,clipped:bool)->Stateful<Div> {
     let label:SharedString=label.into();
-    div().id(id).flex().items_center().gap(px(4.)).px(px(5.)).py(px(3.)).rounded(px(4.))
+    let id:ElementId=id.into();
+    div().id(id.clone()).role(Role::Button).accessibility_id(id.to_string()).aria_label(label.clone())
+        .flex().items_center().gap(px(4.)).px(px(5.)).py(px(3.)).rounded(px(4.))
         .border_1().border_color(rgba(LINE)).text_color(rgb(if clipped {DANGER}else{FAINT}))
         .font_family(MONO_400).text_size(px(9.)).cursor_pointer()
         .when(clipped,|d|d.border_color(rgb(DANGER).alpha(0.45)).bg(rgb(DANGER).alpha(0.08)))
@@ -72,13 +74,28 @@ fn song_output_db_at(x:f32,width:f32)->f32 {
 /// SongOutput's CSS range surface is deliberately independent of training's
 /// native-looking slider: 6px accent-mixed track and a 15px panel-ring thumb.
 pub fn song_output_fader(id:impl Into<ElementId>,db:f32,on_change:impl Fn(f32,&mut Window,&mut App)+'static)->Stateful<Div> {
-    use std::{cell::Cell,rc::Rc};
+    use std::{cell::{Cell,RefCell},rc::Rc};
     let bounds=Rc::new(Cell::new(Bounds::<Pixels>::default()));
-    let callback:Rc<dyn Fn(f32,&mut Window,&mut App)>=Rc::new(on_change);
+    let live=Rc::new(Cell::new(db));
+    let callback_live=live.clone();
+    let callback:Rc<dyn Fn(f32,&mut Window,&mut App)>=Rc::new(move|next,w,cx|{
+        // The host accepts half-dB values. Keep the same original pointer
+        // callback value, while keyboard and AX share its accepted live step.
+        callback_live.set((next.clamp(-60.,12.)*2.).round()/2.);
+        on_change(next,w,cx);
+    });
     let down_bounds=bounds.clone();let move_bounds=bounds.clone();let down_callback=callback.clone();
+    let key_live=live.clone();let key_callback=callback.clone();let semantic_callback=callback.clone();
+    let hitbox=Rc::new(RefCell::new(None::<Hitbox>));let paint_hitbox=hitbox.clone();
     let id:ElementId=id.into();let drag_id=id.clone();
     let fraction=((db+60.)/72.).clamp(0.,1.);
-    div().id(id).relative().w_full().min_w(px(40.)).h(px(6.)).cursor_pointer()
+    let control=div().id(id).relative().w_full().min_w(px(40.)).h(px(6.)).cursor_pointer()
+        .on_key_down(move|event:&KeyDownEvent,w,cx|{
+            let current=key_live.get();
+            let next=match event.keystroke.key.as_str(){"left"|"down"=>Some(current-0.5),"right"|"up"=>Some(current+0.5),"home"=>Some(-60.),"end"=>Some(12.),_=>None};
+            if let Some(next)=next {key_callback(next.clamp(-60.,12.),w,cx);cx.stop_propagation();}
+            else if matches!(event.keystroke.key.as_str(),"space"|"enter") {cx.stop_propagation();}
+        })
         .child(canvas(move|b,_,_|{bounds.set(b);b},|_,b,w,_|{
             // color-mix(in srgb, var(--accent) 30%, var(--panel)).
             let color=Rgba{r:(255.*0.3+27.*0.7)/255.,g:(160.*0.3+24.*0.7)/255.,b:(40.*0.3+20.*0.7)/255.,a:1.};
@@ -96,6 +113,9 @@ pub fn song_output_fader(id:impl Into<ElementId>,db:f32,on_change:impl Fn(f32,&m
         // pointer down and drag, including its part outside the track. Read
         // the track's stored bounds for X mapping, not this larger hitbox.
         .child(div().id("song-output-fader-hit").absolute().top(px(-5.5)).left(px(-1.)).right(px(-1.)).h(px(17.)).cursor_pointer()
+        .child(canvas(move|b,w,_|{
+            *paint_hitbox.borrow_mut()=Some(w.insert_hitbox(b,HitboxBehavior::Normal));b
+        },|_,_,_,_|{}).absolute().inset_0())
         .on_mouse_down(MouseButton::Left,move|e,w,cx| {
             let b=down_bounds.get();
             down_callback(song_output_db_at(f32::from(e.position.x-b.left()),f32::from(b.size.width)),w,cx);
@@ -108,7 +128,8 @@ pub fn song_output_fader(id:impl Into<ElementId>,db:f32,on_change:impl Fn(f32,&m
             }
         })
         .on_click(|_,_,cx|cx.stop_propagation())
-)
+);
+    crate::controls::range_accessibility(control,live,-60.,12.,0.5,hitbox,semantic_callback)
 }
 #[cfg(test)]
 mod fader_tests {

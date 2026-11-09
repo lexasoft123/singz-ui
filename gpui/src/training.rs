@@ -30,8 +30,11 @@ pub fn training_choice(
     label: impl Into<SharedString>,
     active: bool,
 ) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .role(Role::Button).accessibility_id(id.to_string()).aria_label(label.clone()).aria_toggled(if active {Toggled::True} else {Toggled::False})
         .flex_1()
         .min_w_0()
         .min_h(px(34.))
@@ -46,11 +49,14 @@ pub fn training_choice(
         .text_color(rgb(if active { ACCENT } else { DIM }))
         .bg(rgba(if active { ACCENT_SOFT } else { 0 }))
         .cursor_pointer()
-        .child(label.into())
+        .child(label)
 }
 pub fn training_select(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .role(Role::Button).accessibility_id(id.to_string()).aria_label(label.clone())
         .min_h(px(34.))
         .px(px(10.))
         .border_1()
@@ -65,21 +71,24 @@ pub fn training_select(id: impl Into<ElementId>, label: impl Into<SharedString>)
         .font_family(DISPLAY_600)
         .text_color(rgb(TEXT))
         .cursor_pointer()
-        .child(label.into())
+        .child(label)
         .child(crate::colored_icon(crate::TransportIcon::Chevron, TEXT))
 }
 pub fn training_back(id: impl Into<ElementId>) -> Stateful<Div> {
     training_back_label(id, "← Training")
 }
 pub fn training_back_label(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .role(Role::Button).accessibility_id(id.to_string()).aria_label(label.clone())
         .text_size(px(12.))
         .line_height(px(14.5))
         .text_color(rgb(DIM))
         .cursor_pointer()
         .hover(|s| s.text_color(rgb(TEXT)))
-        .child(label.into())
+        .child(label)
 }
 pub fn training_eyebrow(text: impl Into<SharedString>) -> Div {
     div()
@@ -118,8 +127,11 @@ pub fn training_program_choice(
     id: impl Into<ElementId>,
     text: impl Into<SharedString>,
 ) -> Stateful<Div> {
+    let text: SharedString = text.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .role(Role::Button).accessibility_id(id.to_string()).aria_label(text.clone())
         .px(px(16.))
         .py(px(9.))
         .rounded_full()
@@ -146,7 +158,7 @@ pub fn training_primary(id: impl Into<ElementId>, text: impl Into<SharedString>)
 
 /// Controlled primary action; event admission remains with the owning view.
 pub fn training_primary_enabled(id: impl Into<ElementId>, text: impl Into<SharedString>, enabled: bool) -> Stateful<Div> {
-    training_primary(id, text).when(!enabled, |button| button.opacity(0.45).cursor_default())
+    crate::disabled_control(training_primary(id, text), enabled).when(!enabled, |button| button.opacity(0.45).cursor_default())
 }
 
 pub fn training_range(
@@ -170,13 +182,13 @@ pub fn training_range_with_focus(
     let pointer_live = live.clone();
     let callback = Rc::new(on_change);
     let pointer_callback = callback.clone();
-    let element = training_range(id, value, min, max, move |next, w, cx| {
+    let element = crate::disabled_control(crate::controls::range_slider_step_with_live(id, value, min, max, step, live.clone(), move |next, w, cx| {
         if enabled {
             let next = crate::controls::settings_range_value(next, min, max, step);
             pointer_live.set(next);
             pointer_callback(next, w, cx);
         }
-    });
+    }, true), enabled);
     if !enabled { return element; }
     let pointer_focus = focus.clone();
     let key_focus = focus.clone();
@@ -201,8 +213,11 @@ pub fn training_round_button(
     id: impl Into<ElementId>,
     label: impl Into<SharedString>,
 ) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .role(Role::Button).accessibility_id(id.to_string()).aria_label(label.clone())
         .size(px(38.))
         .flex_none()
         .flex()
@@ -216,7 +231,7 @@ pub fn training_round_button(
         .text_size(px(22.))
         .line_height(px(26.5))
         .cursor_pointer()
-        .child(label.into())
+        .child(label)
 }
 
 pub fn training_toggle(
@@ -225,8 +240,11 @@ pub fn training_toggle(
     label: impl Into<SharedString>,
     on: bool,
 ) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .role(Role::Button).accessibility_id(id.to_string()).aria_label(label.clone()).aria_toggled(if on {Toggled::True} else {Toggled::False})
         .flex_1()
         .min_w(px(74.))
         .min_h(px(58.))
@@ -256,7 +274,7 @@ pub fn training_toggle(
                 .line_height(px(14.5))
                 .text_color(rgb(DIM))
                 .truncate()
-                .child(label.into()),
+                .child(label),
         )
 }
 
@@ -275,7 +293,7 @@ pub fn training_hold_meter(progress:f32)->Div {
  div().h(px(8.)).w_full().rounded_full().overflow_hidden().bg(rgba(LINE_STRONG)).child(div().h_full().w(relative(progress.clamp(0.,1.))).rounded_full().bg(rgb(ACCENT)))
 }
 pub fn training_answer(id:impl Into<ElementId>)->Stateful<Div>{
- div().id(id).min_h(px(52.)).p(px(8.)).flex().flex_col().justify_center().gap(px(3.)).text_center().rounded(px(8.)).border_1().border_color(rgba(LINE_STRONG)).bg(rgb(PANEL)).cursor_pointer().hover(|s|s.border_color(rgb(ACCENT)).bg(rgba(ACCENT_SOFT)))
+ div().id(id).role(Role::Button).min_h(px(52.)).p(px(8.)).flex().flex_col().justify_center().gap(px(3.)).text_center().rounded(px(8.)).border_1().border_color(rgba(LINE_STRONG)).bg(rgb(PANEL)).cursor_pointer().hover(|s|s.border_color(rgb(ACCENT)).bg(rgba(ACCENT_SOFT)))
 }
 pub fn training_transport_dock()->Div {
  div().w(px(360.)).max_w_full().min_h(px(88.)).mx_auto().px(px(10.)).py(px(8.)).flex().items_center().justify_center().gap(px(4.)).border_1().border_color(rgba(LINE_STRONG)).rounded(px(28.)).bg(rgba(0x1b1814c2))
@@ -304,11 +322,13 @@ pub fn training_song_card() -> Div {
         .bg(linear_gradient(110.,linear_color_stop(rgba(0xffa02814),0.),linear_color_stop(rgba(0x0f0d0ab8),1.)))
 }
 pub fn training_song_choice(id:impl Into<ElementId>,label:impl Into<SharedString>,enabled:bool) -> Stateful<Div> {
-    div().id(id).flex_1().min_w_0().min_h(px(36.)).py(px(6.)).px(px(8.)).border_1()
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
+    crate::disabled_control(div().id(id.clone()).role(Role::Button).accessibility_id(id.to_string()).aria_label(label.clone()), enabled).flex_1().min_w_0().min_h(px(36.)).py(px(6.)).px(px(8.)).border_1()
         .border_color(rgba(LINE_STRONG)).rounded(px(8.)).bg(rgba(0x1b1814a6))
         .font_family("SingZ Display 680").text_size(px(12.)).line_height(px(18.)).text_color(rgb(TEXT))
         .flex().items_center().justify_center().cursor_pointer()
         .when(!enabled,|d|d.opacity(0.5).cursor_default())
         .when(enabled,|d|d.hover(|s|s.border_color(rgba(ACCENT_LINE)).bg(rgba(ACCENT_SOFT))))
-        .child(label.into())
+        .child(label)
 }

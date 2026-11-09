@@ -51,8 +51,13 @@ pub fn rim() -> BoxShadow {
 /// Add application handlers with `.on_click(...)`; event propagation is
 /// stopped so the enclosing frameless titlebar cannot begin a drag.
 pub fn pill(id: impl Into<ElementId>, label: impl Into<SharedString>, on: bool) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -72,7 +77,7 @@ pub fn pill(id: impl Into<ElementId>, label: impl Into<SharedString>, on: bool) 
         .cursor_pointer()
         .hover(|s| s.border_color(rgba(0xfff0dc55)).text_color(rgb(TEXT)))
         .active(|s| s.bg(rgba(0xffa02830)))
-        .child(label.into())
+        .child(label)
 }
 
 /// Padded raised content group. Children determine its size.
@@ -111,8 +116,12 @@ pub fn section_heading(label: impl Into<SharedString>) -> Div {
 
 /// Binary switch; state remains owned by the host, just like a controlled pill.
 pub fn toggle(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Switch)
+        .aria_toggled(if on { Toggled::True } else { Toggled::False })
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -180,8 +189,14 @@ pub fn nav_tab(
     label: impl Into<SharedString>,
     on: bool,
 ) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Tab)
+        .aria_selected(on)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .px(px(10.))
@@ -195,15 +210,21 @@ pub fn nav_tab(
         .bg(rgba(if on { ACCENT_SOFT } else { 0x00000000 }))
         .cursor_pointer()
         .hover(|s| s.text_color(rgb(TEXT)))
-        .child(label.into())
+        .child(label)
 }
 
 /// Display and hit target for a host-owned settings option picker.
 /// The host supplies the menu behaviour in an attached click callback.
 pub fn select_field(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
         .relative()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::ComboBox)
+        .aria_label(label.clone())
+        .aria_value(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -226,7 +247,7 @@ pub fn select_field(id: impl Into<ElementId>, label: impl Into<SharedString>) ->
         .font_weight(FontWeight::NORMAL)
         .cursor_pointer()
         .hover(|s| s.border_color(rgb(ACCENT)))
-        .child(label.into())
+        .child(label)
         .child(select_arrow())
 }
 
@@ -292,8 +313,12 @@ fn select_arrow() -> impl IntoElement {
 }
 
 pub fn checkbox(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::CheckBox)
+        .aria_toggled(if on { Toggled::True } else { Toggled::False })
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .relative()
@@ -371,8 +396,14 @@ pub fn select_option(
     label: impl Into<SharedString>,
     on: bool,
 ) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::ListBoxOption)
+        .aria_selected(on)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .px(px(8.))
@@ -386,7 +417,7 @@ pub fn select_option(
         .bg(rgba(if on { ACCENT_SOFT } else { 0 }))
         .cursor_pointer()
         .hover(|s| s.bg(rgba(ACCENT_SOFT)))
-        .child(label.into())
+        .child(label)
 }
 
 pub fn catalog_search(state: &Entity<InputState>) -> Input {
@@ -410,8 +441,12 @@ pub fn catalog_search(state: &Entity<InputState>) -> Input {
 
 pub fn text_link(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
     let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Link)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .text_size(px(12.))
@@ -425,8 +460,12 @@ pub fn text_link(id: impl Into<ElementId>, label: impl Into<SharedString>) -> St
 
 fn ghost_pill_base(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
     let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -458,6 +497,25 @@ pub fn small_ghost_pill(id: impl Into<ElementId>, label: impl Into<SharedString>
         .text_size(px(12.))
 }
 
+
+/// Preserve geometry/focus ownership while exposing actual disabled admission.
+fn inaccessible_actions_disabled(control: Stateful<Div>) -> Stateful<Div> {
+    control.a11y_synthetic_children(|builder| {
+        let node = builder.parent_node();
+        node.set_disabled();
+        for action in [AccessibleAction::Click, AccessibleAction::Focus,
+            AccessibleAction::Increment, AccessibleAction::Decrement, AccessibleAction::SetValue] {
+            node.remove_action(action);
+        }
+    })
+}
+
+/// Reflect a host-owned enabled gate without changing geometry or callbacks.
+/// The host must continue to reject pointer/keyboard/worker mutations itself.
+pub fn disabled_control(control: Stateful<Div>, enabled: bool) -> Stateful<Div> {
+    if enabled { control } else { inaccessible_actions_disabled(control) }
+}
+
 /// Controlled small ghost pill. Disabled presentation follows primitives.css;
 /// event/focus admission stays with the owning native control.
 pub fn small_ghost_pill_enabled(
@@ -468,7 +526,7 @@ pub fn small_ghost_pill_enabled(
     if enabled {
         return small_ghost_pill(id, label);
     }
-    ghost_pill_base(id, label)
+    inaccessible_actions_disabled(ghost_pill_base(id, label))
         .px(px(12.))
         .py(px(6.))
         .text_size(px(12.))
@@ -498,15 +556,36 @@ pub(crate) fn range_slider_style(
     on_change: impl Fn(f32, &mut Window, &mut App) + 'static,
     native_track: bool,
 ) -> Stateful<Div> {
+    range_slider_step(id, value, min, max, (max - min) / 100., on_change, native_track)
+}
+pub(crate) fn range_slider_step(
+    id: impl Into<ElementId>, value: f32, min: f32, max: f32, step: f32,
+    on_change: impl Fn(f32, &mut Window, &mut App) + 'static, native_track: bool,
+) -> Stateful<Div> {
+    let live = std::rc::Rc::new(std::cell::Cell::new(value.clamp(min, max)));
+    range_slider_step_with_live(id, value, min, max, step, live, on_change, native_track)
+}
+/// One controlled live value is shared by pointer, keyboard and AX actions,
+/// including mixed bursts arriving before the next render.
+pub(crate) fn range_slider_step_with_live(
+    id: impl Into<ElementId>, value: f32, min: f32, max: f32, step: f32,
+    live: std::rc::Rc<std::cell::Cell<f32>>,
+    on_change: impl Fn(f32, &mut Window, &mut App) + 'static, native_track: bool,
+) -> Stateful<Div> {
     use std::{cell::Cell, rc::Rc};
     let bounds = Rc::new(Cell::new(Bounds::<Pixels>::default()));
     let callback: Rc<dyn Fn(f32, &mut Window, &mut App)> = Rc::new(on_change);
     let fraction = ((value - min) / (max - min)).clamp(0., 1.);
+    let hitbox = Rc::new(std::cell::RefCell::new(None));
+    let paint_hitbox = hitbox.clone();
+    let down_live = live.clone();
+    let drag_live = live.clone();
+    let semantic_callback = callback.clone();
     let down_bounds = bounds.clone();
     let down_callback = callback.clone();
     let id: ElementId = id.into();
     let drag_id = id.clone();
-    div()
+    let element = div()
         .id(id)
         .relative()
         .w_full()
@@ -520,7 +599,9 @@ pub(crate) fn range_slider_style(
             } else {
                 (x, f32::from(b.size.width).max(1.))
             };
-            down_callback(min + (max - min) * (x / width).clamp(0., 1.), w, cx);
+            let next = min + (max - min) * (x / width).clamp(0., 1.);
+            down_live.set(next);
+            down_callback(next, w, cx);
         })
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_drag(SliderDrag(drag_id.clone()), |_, _, _, cx| {
@@ -537,13 +618,16 @@ pub(crate) fn range_slider_style(
             } else {
                 (x, f32::from(b.size.width).max(1.))
             };
-            callback(min + (max - min) * (x / width).clamp(0., 1.), w, cx);
+            let next = min + (max - min) * (x / width).clamp(0., 1.);
+            drag_live.set(next);
+            callback(next, w, cx);
         })
         .on_click(|_, _, cx| cx.stop_propagation())
         .child(
             canvas(
-                move |b, _, _| {
+                move |b, w, _| {
                     bounds.set(b);
+                    *paint_hitbox.borrow_mut() = Some(w.insert_hitbox(b, HitboxBehavior::Normal));
                     b
                 },
                 move |_, b, w, _| {
@@ -609,7 +693,52 @@ pub(crate) fn range_slider_style(
             )
             .absolute()
             .inset_0(),
-        )
+        );
+    range_accessibility(element, live, min, max, step, hitbox, semantic_callback)
+}
+
+
+/// AX changes use the same controlled callback as pointer/keyboard input. The
+/// measured nonpainting hitbox rejects clipped/occluded controls without relying
+/// on the real pointer location or keyboard modality (notably while a modal is up).
+pub(crate) fn range_accessibility(
+    control: Stateful<Div>, live: std::rc::Rc<std::cell::Cell<f32>>,
+    min: f32, max: f32, step: f32,
+    hitbox: std::rc::Rc<std::cell::RefCell<Option<Hitbox>>>,
+    callback: std::rc::Rc<dyn Fn(f32, &mut Window, &mut App)>,
+) -> Stateful<Div> {
+    let id = Element::id(&control).expect("range has a stable element ID");
+    let mut control = control.role(Role::Slider).accessibility_id(id.to_string())
+        .aria_numeric_value(live.get() as f64)
+        .aria_min_numeric_value(min as f64).aria_max_numeric_value(max as f64)
+        .aria_numeric_value_step(step as f64).aria_orientation(Orientation::Horizontal);
+    for action in [AccessibleAction::Increment, AccessibleAction::Decrement, AccessibleAction::SetValue] {
+        let live = live.clone();
+        let hitbox = hitbox.clone();
+        let callback = callback.clone();
+        control = control.on_a11y_action(action, move |data, w, cx| {
+            let admitted = hitbox.borrow().as_ref()
+                .is_some_and(|b| b.is_hovered_at(b.center(), w));
+            if !admitted || !min.is_finite() || !max.is_finite() || min >= max
+                || !step.is_finite() || step <= 0. { return; }
+            let proposed = match action {
+                AccessibleAction::Increment => live.get() + step,
+                AccessibleAction::Decrement => live.get() - step,
+                AccessibleAction::SetValue => match data {
+                    Some(gpui_kit::accesskit::ActionData::NumericValue(value)) if value.is_finite() => value.clamp(min as f64, max as f64) as f32,
+                    _ => return,
+                },
+                _ => return,
+            };
+            if !proposed.is_finite() { return; }
+            let next = settings_range_value(proposed, min, max, step);
+            if next != live.get() {
+                live.set(next);
+                callback(next, w, cx);
+            }
+        });
+    }
+    control
 }
 
 /// Disabled monitor action keeps the production button's full opacity.
@@ -617,7 +746,7 @@ pub fn disabled_monitor_pill(
     id: impl Into<ElementId>,
     label: impl Into<SharedString>,
 ) -> Stateful<Div> {
-    ghost_pill_base(id, label)
+    inaccessible_actions_disabled(ghost_pill_base(id, label))
         .bg(rgb(PANEL))
         .border_color(rgba(LINE_STRONG))
         .text_color(rgb(FAINT))
@@ -642,8 +771,14 @@ pub fn segmented_tab(
     label: impl Into<SharedString>,
     on: bool,
 ) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Tab)
+        .aria_selected(on)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -677,8 +812,12 @@ pub fn segmented_tab(
 /// Status pill shell; prepend a status dot with `.child` when needed.
 pub fn status_chip(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
     let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -699,8 +838,11 @@ pub fn status_chip(id: impl Into<ElementId>, label: impl Into<SharedString>) -> 
 
 /// Catalog card delete action, preserving the production hit target and glyph.
 pub fn catalog_delete(id: impl Into<ElementId>) -> Stateful<Div> {
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -720,8 +862,11 @@ pub fn catalog_delete(id: impl Into<ElementId>) -> Stateful<Div> {
 }
 
 pub(crate) fn round_button_surface(id: impl Into<ElementId>, on: bool) -> Stateful<Div> {
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -770,8 +915,11 @@ pub fn play_button(id: impl Into<ElementId>, playing: bool) -> Stateful<Div> {
         spread_radius: px(0.),
         inset: false,
     });
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -792,8 +940,13 @@ pub fn play_button(id: impl Into<ElementId>, playing: bool) -> Stateful<Div> {
 }
 
 pub(crate) fn transport_chip_surface(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
+    let label: SharedString = label.into();
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
+        .aria_label(label.clone())
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -810,7 +963,7 @@ pub(crate) fn transport_chip_surface(id: impl Into<ElementId>, label: impl Into<
         .font_family(DISPLAY_700)
         .font_weight(FontWeight::NORMAL)
         .cursor_pointer()
-        .child(label.into())
+        .child(label)
 }
 
 pub fn transport_chip(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Stateful<Div> {
@@ -1228,8 +1381,13 @@ pub fn stem_chip(
     } else {
         ACCENT_INK
     };
+    let id: ElementId = id.into();
     div()
-        .id(id)
+        .id(id.clone())
+        .accessibility_id(id.to_string())
+        .role(Role::Button)
+        .aria_label(label.clone())
+        .aria_toggled(if active { Toggled::True } else { Toggled::False })
         .on_mouse_move(|_, _, cx| cx.stop_propagation())
         .on_click(|_, _, cx| cx.stop_propagation())
         .flex()
@@ -1260,7 +1418,7 @@ pub fn song_button_with_focus(
     enabled: bool,
     on_press: impl Fn(&mut Window, &mut App) + 'static,
 ) -> Stateful<Div> {
-    if !enabled { return button; }
+    if !enabled { return inaccessible_actions_disabled(button); }
     let callback = std::rc::Rc::new(on_press);
     let key_callback = callback.clone();
     let down_focus = focus.clone();
@@ -1339,6 +1497,9 @@ fn stem_volume_impl(
     use std::{cell::Cell, rc::Rc};
     let bounds = Rc::new(Cell::new(Bounds::<Pixels>::default()));
     let callback: Rc<dyn Fn(f32, &mut Window, &mut App)> = Rc::new(on_change);
+    let hitbox = Rc::new(std::cell::RefCell::new(None));
+    let paint_hitbox = hitbox.clone();
+    let semantic_callback = callback.clone();
     let down_bounds = bounds.clone();
     let down_callback = callback.clone();
     let id: ElementId = id.into();
@@ -1346,6 +1507,7 @@ fn stem_volume_impl(
     let value = value.clamp(0., 1.);
     let live = Rc::new(Cell::new(value));
     let down_live = live.clone();
+    let semantic_live = live.clone();
     let key_live = live.clone();
     let key_callback = callback.clone();
     let down_focus = focus.clone();
@@ -1392,8 +1554,9 @@ fn stem_volume_impl(
         .on_click(|_, _, cx| cx.stop_propagation())
         .child(
             canvas(
-                move |b, _, _| {
+                move |b, w, _| {
                     bounds.set(b);
+                    *paint_hitbox.borrow_mut() = Some(w.insert_hitbox(b, HitboxBehavior::Normal));
                     b
                 },
                 move |_, b, w, _| {
@@ -1431,6 +1594,7 @@ fn stem_volume_impl(
             .absolute()
             .inset_0(),
         );
+    let element = range_accessibility(element, semantic_live, 0., 1., 0.01, hitbox, semantic_callback);
     if let Some(focus) = focus { element.track_focus(&focus).tab_index(0) } else { element }
 }
 
@@ -1880,7 +2044,7 @@ pub fn settings_control_with_focus(
     enabled: bool,
     on_activate: impl Fn(&mut Window, &mut App) + 'static,
 ) -> Stateful<Div> {
-    if !enabled { return control; }
+    if !enabled { return inaccessible_actions_disabled(control); }
     let callback = std::rc::Rc::new(on_activate);
     let key_callback = callback.clone();
     let down_focus = focus.clone();
@@ -1950,14 +2114,14 @@ pub fn settings_range_slider_with_focus(
     let pointer_live = live.clone();
     let callback = Rc::new(on_change);
     let pointer_callback = callback.clone();
-    let element = range_slider(id, value, min, max, move |next, w, cx| {
+    let element = range_slider_step_with_live(id, value, min, max, step, live.clone(), move |next, w, cx| {
         if enabled {
             let next = settings_range_value(next, min, max, step);
             pointer_live.set(next);
             pointer_callback(next, w, cx);
         }
-    });
-    if !enabled { return element; }
+    }, false);
+    if !enabled { return inaccessible_actions_disabled(element); }
     let pointer_focus = focus.clone();
     let key_focus = focus.clone();
     crate::lyrics_sidebar_focus(element, focus.clone())

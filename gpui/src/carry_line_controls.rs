@@ -96,7 +96,8 @@ pub fn carry_line_lane(
 ) -> Stateful<Div> {
     let text: SharedString = text.into();
     let tooltip = text.clone();
-    crate::controls::transport_chip_surface(id, "")
+    crate::disabled_control(crate::controls::transport_chip_surface(id, "")
+        .aria_label(text.clone()).aria_toggled(if selected {Toggled::True} else {Toggled::False}), enabled)
         .child(
             div()
                 .min_w_0()
@@ -137,7 +138,7 @@ pub fn carry_line_step(
     text: impl Into<SharedString>,
     enabled: bool,
 ) -> Stateful<Div> {
-    crate::controls::transport_chip_surface(id, text)
+    crate::disabled_control(crate::controls::transport_chip_surface(id, text), enabled)
         .h(px(24.))
         .text_size(px(11.))
         .font_family(DISPLAY_800)
