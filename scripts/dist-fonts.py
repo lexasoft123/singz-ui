@@ -5,6 +5,9 @@ root=Path(__file__).resolve().parents[1]
 assets=root/'gpui/assets/fonts';target=root/'dist/fonts';target.mkdir(parents=True,exist_ok=True)
 manifest=json.loads((assets/'manifest.json').read_text())
 for name in ['Bricolage-OFL.txt','MartianMono-OFL.txt',*[f['file'] for f in manifest['faces']]]:shutil.copyfile(assets/name,target/name)
+for fallback in manifest.get('fallbacks', []):
+    for name in (fallback['file'], fallback['licenseFile'], fallback['metadataFile']):
+        shutil.copyfile(assets/name, target/name)
 for face in manifest['faces']:
     output=target/face['windowsFile'];output.parent.mkdir(exist_ok=True);shutil.copyfile(assets/face['windowsFile'],output)
 for path in (assets/'sources').glob('*.woff2'):shutil.copyfile(path,target/path.name)

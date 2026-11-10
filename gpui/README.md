@@ -27,6 +27,15 @@ The same assets and original variable Unicode subsets ship in npm `dist/fonts`,
 with `@singz/ui/fonts.css` as the web registration entry. OFL licenses ship beside them.
 Regenerate with `python3 scripts/gen-fonts.py` from the UIKit root, then `python3 scripts/dist-fonts.py`. Native font generation/distribution needs no Node.
 
+Linux additionally registers the UIKit-owned `NotoColorEmojiFolder.ttf` fallback
+for the source's `📁` symbol. This 2,880-byte CBDT/CBLC subset preserves the pinned
+upstream color bitmap and metrics; macOS/Windows retain their existing platform
+emoji fallback. Its OFL license, provenance and hash metadata also ship in
+`dist/fonts`. Regenerate this asset with
+`python3 scripts/subset-folder-emoji.py --source /path/to/pinned/NotoColorEmoji.ttf`
+using fontTools 4.68.0, then run the
+Python distribution script. This generation tool never downloads or installs fonts.
+
 Call `singz_uikit::init(cx)` immediately after `gpui_kit::init(cx)` to apply the
 SingZ input palette, amber focus ring, caret and selection. Reapply it if the
 host changes the component theme later.

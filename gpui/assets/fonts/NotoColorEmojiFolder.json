@@ -1,0 +1,23 @@
+{
+  "file": "NotoColorEmojiFolder.ttf",
+  "metadataFile": "NotoColorEmojiFolder.json",
+  "family": "Noto Color Emoji",
+  "postScriptName": "NotoColorEmoji",
+  "platforms": [
+    "linux"
+  ],
+  "unicode": [
+    "U+1F4C1"
+  ],
+  "format": "CBDT/CBLC",
+  "licenseFile": "NotoColorEmoji-OFL.txt",
+  "licenseSha256": "500bb1ccf43df7bbb522112f9133a52b16e1c35e809632f5d8609b179152de5b",
+  "sourceRepository": "https://github.com/googlefonts/noto-emoji",
+  "sourceCommit": "e20cbc2bbec1926686be9f9bee7d1d2cfa1fea0e",
+  "sourcePath": "2D/fonts/NotoColorEmoji.ttf",
+  "sourceSha256": "15671215ab769fdc7162a045d56fd7d7e477c51b04e6b3c761d914d8fdd6cc44",
+  "sha256": "99e7c6a96c62de5cab386ee2da3812da1e24575224c6bdfb7952d48cba7aa7f1",
+  "bytes": 2880,
+  "fontToolsVersion": "4.68.0",
+  "folderBitmapSha256": "2b386cb461c5f18bb5d75de5a492c106585c664cb93d82f76457c3390b0246fe"
+}

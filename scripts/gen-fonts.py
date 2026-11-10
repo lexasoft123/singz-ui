@@ -7,6 +7,7 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 ROOT=Path(__file__).resolve().parents[1]
 ASSETS=ROOT/'gpui/assets/fonts'
+fallbacks=[json.loads((ASSETS/'NotoColorEmojiFolder.json').read_text())]
 faces=[]
 for source,family,file,weights in [
  ('Bricolage','SingZ Display','bricolage-grotesque-latin-wght-normal.woff2',[400,500,600,650,680,700,720,780,800]),
@@ -37,5 +38,5 @@ for source,family,file,weights in [
   for tag in ['glyf','hmtx','cmap','GPOS','GSUB']:
    if tag in font:outlines.update(tag.encode());outlines.update(font.getTableData(tag))
   faces.append({'file':output.name,'family':family_name,'visualWeight':weight,'nativeWeight':weight,'windowsFile':'windows/'+output.name,'windowsNativeWeight':400,'windowsSha256':hashlib.sha256(windows_path.read_bytes()).hexdigest(),'style':'normal','source':f'sources/{file}','sourceSha256':hashlib.sha256(path.read_bytes()).hexdigest(),'sha256':hashlib.sha256(output.read_bytes()).hexdigest(),'outlineAndLayoutSha256':outlines.hexdigest()})
-(ASSETS/'manifest.json').write_text(json.dumps({'schema':1,'purpose':'UIKit-owned static font families; visual weight encoded by family; original CoreText metadata and Windows normal-style aliases','faces':faces},indent=2)+'\n')
+(ASSETS/'manifest.json').write_text(json.dumps({'schema':1,'purpose':'UIKit-owned static font families; visual weight encoded by family; original CoreText metadata and Windows normal-style aliases','faces':faces,'fallbacks':fallbacks},indent=2)+'\n')
 print(f'Generated {len(faces)} UIKit font faces')

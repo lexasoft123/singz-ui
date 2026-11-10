@@ -33,6 +33,11 @@ pub const MONO_720: &[u8] = font_bytes!("MartianMono720.ttf");
 
 pub const MONO_760: &[u8] = font_bytes!("MartianMono760.ttf");
 
+// Linux's native text system may have no host emoji font. Keep the source's
+// Unicode folder and supply its color bitmap without changing Apple/Segoe fallback.
+#[cfg(target_os = "linux")]
+const FOLDER_EMOJI: &[u8] = include_bytes!("../assets/fonts/NotoColorEmojiFolder.ttf");
+
 /// Register bundled faces once per App. No system installation or host assets required.
 pub fn register_fonts(cx: &mut App) -> anyhow::Result<()> {
     if cx.has_global::<FontsRegistered>() { return Ok(()); }
@@ -54,6 +59,8 @@ pub fn register_fonts(cx: &mut App) -> anyhow::Result<()> {
         Cow::Borrowed(MONO_600),
         Cow::Borrowed(MONO_700),
     ])?;
+    #[cfg(target_os = "linux")]
+    cx.text_system().add_fonts(vec![Cow::Borrowed(FOLDER_EMOJI)])?;
     cx.set_global(FontsRegistered);
     Ok(())
 }
