@@ -41,6 +41,9 @@ pub fn init(cx: &mut gpui_kit::App) {
 mod models;
 pub use models::*;
 
+mod modal_backdrop;
+pub use modal_backdrop::{ModalBackdropCache, ModalBackdropKey};
+
 mod split_controls;
 pub use split_controls::*;
 
