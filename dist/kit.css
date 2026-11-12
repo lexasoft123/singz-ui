@@ -27,6 +27,7 @@
   --sz-surface-raised: #1e1a15;
   --sz-danger: #ff7a5c;
   --sz-success: #58d68a;
+  --sz-meter-warn: #ffd05b;
   --sz-danger-strong: #ff8a7a;
   --sz-danger-strong-line: rgba(255, 138, 122, 0.4);
   --sz-danger-strong-wash: rgba(255, 138, 122, 0.12);
@@ -967,6 +968,90 @@ input:focus-visible {
    to outrank `.wave-bright` and a host's `.lane .wave-bright`. */
 .wave .wave-bright.wave-edge {
   clip-path: inset(0 calc(100% - var(--p-edge, var(--p, 0%)) + 0.1px) 0 calc(var(--p, 0%) + 0.1px));
+}
+
+/* ——————————————————————————— night-studio · meters ————— */
+
+/*
+ * PeakMeter. Every moving part is driven by direct style writes from one
+ * requestAnimationFrame loop (never React state), so the only things written
+ * per frame are `transform` on the live fills and the peak marker, and
+ * `opacity` on the trail — all compositor-only properties.
+ *
+ *   --sz-meter-scale   multiplies the height (TV / desktop); default 1
+ *
+ * Zones: green = --sz-success, yellow = --sz-meter-warn, red = --sz-danger.
+ */
+.sz-meter {
+  --sz-meter-gap: 2px;
+  --sz-meter-scale: 1;
+  position: relative;
+  display: flex;
+  gap: var(--sz-meter-gap);
+  width: 100%;
+  height: calc(16px * var(--sz-meter-scale));
+  border-radius: calc(3px * var(--sz-meter-scale));
+  overflow: hidden;
+  background: var(--sz-panel-deep);
+  contain: strict;
+  pointer-events: none;
+}
+.sz-meter.mini {
+  height: calc(9px * var(--sz-meter-scale));
+}
+.sz-meter-brick {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 1px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--sz-faint) 30%, transparent);
+}
+.sz-meter.clipped .sz-meter-brick {
+  background: color-mix(in srgb, var(--sz-danger) 24%, transparent);
+}
+.sz-meter-trail,
+.sz-meter-live {
+  position: absolute;
+  inset: 0;
+  background: var(--sz-meter-color);
+}
+.sz-meter-trail {
+  opacity: 0;
+}
+.sz-meter-live {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.sz-meter-brick.z0 { --sz-meter-color: var(--sz-success); }
+.sz-meter-brick.z1 { --sz-meter-color: var(--sz-meter-warn); }
+.sz-meter-brick.z2 { --sz-meter-color: var(--sz-danger); }
+
+.sz-meter-peak {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc((100% - var(--sz-meter-gap) * (var(--sz-meter-count) - 1)) / var(--sz-meter-count));
+  border-radius: 1px;
+  background: var(--sz-meter-color);
+  box-shadow: 0 0 calc(4px * var(--sz-meter-scale)) var(--sz-meter-color);
+  opacity: 0;
+}
+.sz-meter.mini .sz-meter-peak {
+  box-shadow: 0 0 calc(2px * var(--sz-meter-scale)) var(--sz-meter-color);
+}
+.sz-meter-peak.z0 { --sz-meter-color: var(--sz-success); }
+.sz-meter-peak.z1 { --sz-meter-color: var(--sz-meter-warn); }
+.sz-meter-peak.z2 { --sz-meter-color: var(--sz-danger); }
+.sz-meter-peak::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--sz-text) 45%, transparent);
+}
+.sz-meter.mini .sz-meter-peak::after {
+  height: 1px;
 }
 
 /* ——————————————————————————— night-studio · electron chrome ————— */

@@ -60,6 +60,8 @@ export const tokens = {
     // status
     danger: '#ff7a5c',
     success: '#58d68a',
+    /** The middle zone of a level meter, between --success and --danger. */
+    'meter-warn': '#ffd05b',
     /** Danger as FOREGROUND — a button's text and border, which needs more
      *  lift than --sz-danger has against a dark ground. */
     'danger-strong': '#ff8a7a',
