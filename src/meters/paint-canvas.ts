@@ -3,7 +3,7 @@ import { meterBrickFill, meterIndex, meterZone, type PeakMeterMotion } from './p
 export interface MeterPalette { zones: readonly string[]; faint: string; danger: string; text: string }
 /** One bitmap, no per-brick layers. Quantize damage to bitmap pixels and alpha bytes. */
 export function paintMeterCanvas(ctx: CanvasRenderingContext2D, motion: PeakMeterMotion, count: number,
-  width: number, height: number, gap: number, radius: number, palette: MeterPalette, clipped: boolean, previous: string): string {
+  width: number, height: number, gap: number, radius: number, palette: MeterPalette, clipped: boolean, previous: string, onLivePaint?: (shape: string) => void): string {
   const brick = Math.max(0, (width - gap * (count - 1)) / count)
   const fills = Array.from({ length: count }, (_, i) => Math.round(meterBrickFill(motion.liveDb, i, count) * brick))
   const trail = motion.trail.map(value => Math.round(value * 255))
@@ -32,5 +32,6 @@ export function paintMeterCanvas(ctx: CanvasRenderingContext2D, motion: PeakMete
     ctx.fillRect(peak * (brick + gap), 0, brick, Math.max(1, radius * (count === 16 ? 1 : 2)))
     ctx.globalAlpha = 1
   }
+  onLivePaint?.(fills.join('|'))
   return key
 }

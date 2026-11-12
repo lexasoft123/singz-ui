@@ -13,5 +13,5 @@ export declare function meterBrickFill(db: number, index: number, count: number)
 export declare function meterZone(index: number, count: number): number;
 export declare function emptyPeakMeter(count: number): PeakMeterMotion;
 /** Pure ballistics shared by the UI-thread renderer and regression tests. */
-export declare function stepPeakMeter(previous: PeakMeterMotion, inputDb: number, elapsedMs: number, peakInputDb?: number): PeakMeterMotion;
+export declare function stepPeakMeter(previous: PeakMeterMotion, inputDb: number, elapsedMs: number, peakInputDb?: number, attackMs?: number): PeakMeterMotion;
 export declare function peakMeterAtRest(state: PeakMeterMotion): boolean;

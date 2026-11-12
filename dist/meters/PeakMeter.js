@@ -14,7 +14,7 @@ const Bricks = memo(function Bricks({ count }) {
  * is false, and prefers-reduced-motion keeps the held peak but drops the
  * falling and trailing motion.
  */
-export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini = false, clipped = false, identity, enabled = true, size = 1, renderMode = 'dom', maxFps = 0, className, style }, ref) {
+export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini = false, clipped = false, identity, enabled = true, size = 1, renderMode = 'dom', maxFps = 0, attackMs = 20, onPaint, className, style }, ref) {
     const count = mini ? 16 : 40;
     const root = useRef(null);
     const canvas = useRef(null);
@@ -28,6 +28,10 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         peakTarget: -Infinity,
         enabled,
         maxFps,
+        attackMs,
+        onPaint,
+        readingId: undefined,
+        liveShape: '',
         nextPaint: 0,
         reduced: false,
         hidden: false,
@@ -36,7 +40,7 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         acc: 0,
         painted: { trail: [], live: [], peakIndex: -2, peakZone: -1 }
     });
-    const paint = useCallback(() => {
+    const paint = useCallback((frameTime) => {
         const el = root.current;
         if (!el)
             return;
@@ -46,7 +50,15 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         if (surface) {
             const b = bitmap.current, ctx = surface.getContext('2d');
             if (ctx && b.width > 0 && b.height > 0 && b.palette)
-                b.key = paintMeterCanvas(ctx, motion, n, b.width, b.height, b.gap, b.ratio, b.palette, surface.dataset.clipped === 'true', b.key);
+                b.key = paintMeterCanvas(ctx, motion, n, b.width, b.height, b.gap, b.ratio, b.palette, surface.dataset.clipped === 'true', b.key, s.onPaint ? shape => {
+                    if (shape === s.liveShape)
+                        return;
+                    s.liveShape = shape;
+                    if (s.readingId !== undefined && s.enabled && !s.hidden) {
+                        s.onPaint?.(s.readingId, frameTime ?? performance.now());
+                        s.readingId = undefined;
+                    }
+                } : undefined);
             return;
         }
         const bricks = el.children;
@@ -96,15 +108,15 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
     const frame = useCallback((now) => {
         const s = sim.current;
         s.raf = 0;
-        const elapsed = s.last > 0 ? Math.min(100, Math.max(0, now - s.last)) : 0;
+        const elapsed = s.last > 0 ? Math.min(100, Math.max(0, now - s.last)) : (s.attackMs === 0 ? MIN_STEP_MS : 0);
         s.last = now;
         s.acc += elapsed;
         if (s.acc >= MIN_STEP_MS && now + .25 >= s.nextPaint) {
-            s.motion = stepPeakMeter(s.motion, s.target, s.acc, s.peakTarget);
+            s.motion = stepPeakMeter(s.motion, s.target, s.acc, s.peakTarget, s.attackMs);
             s.acc = 0;
             const period = s.maxFps > 0 ? 1000 / s.maxFps : 0;
             s.nextPaint = period ? Math.max(s.nextPaint + period, now) : now;
-            paint();
+            paint(now);
             if (peakMeterAtRest(s.motion))
                 return;
         }
@@ -123,7 +135,7 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         else if (s.reduced) {
             // Hold the peak, omit falling and trailing.
             stop();
-            const snapshot = stepPeakMeter(s.motion, s.target, 100, s.peakTarget);
+            const snapshot = stepPeakMeter(s.motion, s.target, 100, s.peakTarget, s.attackMs);
             snapshot.liveDb = Number.isFinite(s.target) ? Math.max(-60, Math.min(0, s.target)) : -60;
             snapshot.trail.fill(0);
             if (snapshot.liveDb <= -60)
@@ -141,8 +153,9 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
             s.raf = requestAnimationFrame(frame);
         }
     }, [frame, paint, reset, stop]);
-    const push = useCallback((nextDb, nextPeak = nextDb) => {
+    const push = useCallback((nextDb, nextPeak = nextDb, readingId) => {
         const s = sim.current;
+        s.readingId = readingId;
         s.want = nextDb;
         s.wantPeak = nextPeak;
         sync();
@@ -207,11 +220,13 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
     useEffect(() => {
         const s = sim.current;
         s.enabled = enabled;
+        s.attackMs = Number.isFinite(attackMs) && attackMs >= 0 ? attackMs : 20;
+        s.onPaint = onPaint;
         s.maxFps = Number.isFinite(maxFps) && maxFps > 0 ? maxFps : 0;
         s.want = db;
         s.wantPeak = peakDb;
         sync();
-    }, [db, peakDb, enabled, maxFps, sync]);
+    }, [db, peakDb, enabled, maxFps, attackMs, onPaint, sync]);
     const vars = { '--sz-meter-count': count, '--sz-meter-scale': size, ...style };
     return (_jsx("div", { ref: root, className: cx('sz-meter', mini && 'mini', clipped && 'clipped', className), style: vars, "aria-hidden": "true", children: renderMode === 'canvas' ? _jsx("canvas", { ref: canvas, className: "sz-meter-canvas", "data-clipped": String(clipped), style: { width: '100%', height: '100%', display: 'block' } }) : _jsx(Bricks, { count: count }) }));
 });

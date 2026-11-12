@@ -171,3 +171,27 @@ test('canvas damage is gated on whole pixels and never adds a glow', async () =>
   assert.equal(again, key)
   assert.equal(ctx.paints, 1)
 })
+
+
+test('instant canvas attack paints on the first frame and traces only changed live pixels', async () => {
+  Object.assign(globalThis, { MutationObserver: window.MutationObserver, getComputedStyle: window.getComputedStyle.bind(window) })
+  const bounds = window.HTMLElement.prototype.getBoundingClientRect
+  const getContext = window.HTMLCanvasElement.prototype.getContext
+  window.HTMLElement.prototype.getBoundingClientRect = () => ({ width: 120, height: 16 })
+  window.HTMLCanvasElement.prototype.getContext = () => ({ clearRect() {}, save() {}, restore() {}, beginPath() {}, roundRect() {}, fill() {}, clip() {}, fillRect() {} })
+  const ref = createRef(), paints = []
+  const ui = await mount(h(PeakMeter, { db: -Infinity, ref, renderMode: 'canvas', maxFps: 30, attackMs: 0, onPaint: (id, at) => paints.push({ id, at }) }))
+  await act(async () => ref.current.push(-12, -12, 7))
+  await flush(1, 1000 / 30)
+  assert.deepEqual(paints, [{ id: 7, at: clock }], 'new live pixels appear on the first available frame')
+  await act(async () => ref.current.push(-12, -12, 8))
+  await flush(4, 1000 / 30)
+  assert.equal(paints.length, 1, 'trail-only paints never attribute an unchanged reading')
+  await act(async () => ref.current.push(-6, -6, 9))
+  await flush(1, 1000 / 30)
+  assert.equal(paints.at(-1).id, 9)
+  await act(async () => ui.root.unmount()); ui.host.remove()
+  assert.equal(queue.size, 0)
+  window.HTMLCanvasElement.prototype.getContext = getContext
+  window.HTMLElement.prototype.getBoundingClientRect = bounds
+})

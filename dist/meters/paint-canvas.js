@@ -1,6 +1,6 @@
 import { meterBrickFill, meterIndex, meterZone } from './peak-meter-motion.js';
 /** One bitmap, no per-brick layers. Quantize damage to bitmap pixels and alpha bytes. */
-export function paintMeterCanvas(ctx, motion, count, width, height, gap, radius, palette, clipped, previous) {
+export function paintMeterCanvas(ctx, motion, count, width, height, gap, radius, palette, clipped, previous, onLivePaint) {
     const brick = Math.max(0, (width - gap * (count - 1)) / count);
     const fills = Array.from({ length: count }, (_, i) => Math.round(meterBrickFill(motion.liveDb, i, count) * brick));
     const trail = motion.trail.map(value => Math.round(value * 255));
@@ -41,5 +41,6 @@ export function paintMeterCanvas(ctx, motion, count, width, height, gap, radius,
         ctx.fillRect(peak * (brick + gap), 0, brick, Math.max(1, radius * (count === 16 ? 1 : 2)));
         ctx.globalAlpha = 1;
     }
+    onLivePaint?.(fills.join('|'));
     return key;
 }

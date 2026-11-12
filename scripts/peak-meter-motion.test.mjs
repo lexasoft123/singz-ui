@@ -69,3 +69,16 @@ test('shows changes smaller than one compact segment instead of snapping to a fu
   assert.ok(second > first)
   assert.ok(second < 1)
 })
+
+
+test('instant attack changes only rising ballistics; release, hold and trail keep their speed', () => {
+  const initial = emptyPeakMeter(16)
+  const instant = stepPeakMeter(initial, -12, 1, -12, 0)
+  const normal = stepPeakMeter(initial, -12, 1)
+  assert.equal(instant.liveDb, -12)
+  assert.ok(normal.liveDb < -50)
+  assert.equal(instant.holdMs, normal.holdMs)
+  assert.deepEqual(instant.trail, normal.trail)
+  const start = { ...instant, liveDb: -12 }
+  assert.deepEqual(stepPeakMeter(start, -44, 33, -44, 0), stepPeakMeter(start, -44, 33, -44, 20))
+})

@@ -22,6 +22,10 @@ export interface PeakMeterProps {
   renderMode?: 'dom' | 'canvas'
   /** Maximum simulation/paint cadence; ballistics retain their elapsed-time speed. */
   maxFps?: number
+  /** Rising-level time constant; zero shows a new level on the first paint. Default 20 ms. */
+  attackMs?: number
+  /** Optional canvas diagnostic: first changed live pixels for an imperative reading. */
+  onPaint?: (readingId: number, frameTimeMs: number) => void
   /** Tints the unlit bricks red. */
   clipped?: boolean
   /** Changing it (a new song, a new input) clears the meter instantly. */
@@ -36,7 +40,7 @@ export interface PeakMeterProps {
 
 /** Drive the meter without any React render at all. */
 export interface PeakMeterHandle {
-  push(db: number, peakDb?: number): void
+  push(db: number, peakDb?: number, readingId?: number): void
 }
 
 const MIN_STEP_MS = 4
@@ -63,7 +67,7 @@ const Bricks = memo(function Bricks({ count }: { count: number }): React.JSX.Ele
  * falling and trailing motion.
  */
 export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function PeakMeter(
-  { db, peakDb = db, mini = false, clipped = false, identity, enabled = true, size = 1, renderMode = 'dom', maxFps = 0, className, style },
+  { db, peakDb = db, mini = false, clipped = false, identity, enabled = true, size = 1, renderMode = 'dom', maxFps = 0, attackMs = 20, onPaint, className, style },
   ref
 ) {
   const count = mini ? 16 : 40
@@ -79,6 +83,10 @@ export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function Pe
     peakTarget: -Infinity,
     enabled,
     maxFps,
+    attackMs,
+    onPaint,
+    readingId: undefined as number | undefined,
+    liveShape: '',
     nextPaint: 0,
     reduced: false,
     hidden: false,
@@ -88,7 +96,7 @@ export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function Pe
     painted: { trail: [] as number[], live: [] as number[], peakIndex: -2, peakZone: -1 }
   })
 
-  const paint = useCallback(() => {
+  const paint = useCallback((frameTime?: number) => {
     const el = root.current
     if (!el) return
     const s = sim.current
@@ -97,7 +105,14 @@ export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function Pe
     if (surface) {
       const b = bitmap.current, ctx = surface.getContext('2d')
       if (ctx && b.width > 0 && b.height > 0 && b.palette)
-        b.key = paintMeterCanvas(ctx, motion, n, b.width, b.height, b.gap, b.ratio, b.palette, surface.dataset.clipped === 'true', b.key)
+        b.key = paintMeterCanvas(ctx, motion, n, b.width, b.height, b.gap, b.ratio, b.palette, surface.dataset.clipped === 'true', b.key, s.onPaint ? shape => {
+          if (shape === s.liveShape) return
+          s.liveShape = shape
+          if (s.readingId !== undefined && s.enabled && !s.hidden) {
+            s.onPaint?.(s.readingId, frameTime ?? performance.now())
+            s.readingId = undefined
+          }
+        } : undefined)
       return
     }
     const bricks = el.children
@@ -147,15 +162,15 @@ export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function Pe
   const frame = useCallback((now: number) => {
     const s = sim.current
     s.raf = 0
-    const elapsed = s.last > 0 ? Math.min(100, Math.max(0, now - s.last)) : 0
+    const elapsed = s.last > 0 ? Math.min(100, Math.max(0, now - s.last)) : (s.attackMs === 0 ? MIN_STEP_MS : 0)
     s.last = now
     s.acc += elapsed
     if (s.acc >= MIN_STEP_MS && now + .25 >= s.nextPaint) {
-      s.motion = stepPeakMeter(s.motion, s.target, s.acc, s.peakTarget)
+      s.motion = stepPeakMeter(s.motion, s.target, s.acc, s.peakTarget, s.attackMs)
       s.acc = 0
       const period = s.maxFps > 0 ? 1000 / s.maxFps : 0
       s.nextPaint = period ? Math.max(s.nextPaint + period, now) : now
-      paint()
+      paint(now)
       if (peakMeterAtRest(s.motion)) return
     }
     s.raf = requestAnimationFrame(frame)
@@ -173,7 +188,7 @@ export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function Pe
     } else if (s.reduced) {
       // Hold the peak, omit falling and trailing.
       stop()
-      const snapshot = stepPeakMeter(s.motion, s.target, 100, s.peakTarget)
+      const snapshot = stepPeakMeter(s.motion, s.target, 100, s.peakTarget, s.attackMs)
       snapshot.liveDb = Number.isFinite(s.target) ? Math.max(-60, Math.min(0, s.target)) : -60
       snapshot.trail.fill(0)
       if (snapshot.liveDb <= -60) snapshot.peakDb = -60
@@ -189,8 +204,9 @@ export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function Pe
     }
   }, [frame, paint, reset, stop])
 
-  const push = useCallback((nextDb: number, nextPeak: number = nextDb) => {
+  const push = useCallback((nextDb: number, nextPeak: number = nextDb, readingId?: number) => {
     const s = sim.current
+    s.readingId = readingId
     s.want = nextDb
     s.wantPeak = nextPeak
     sync()
@@ -253,11 +269,13 @@ export const PeakMeter = forwardRef<PeakMeterHandle, PeakMeterProps>(function Pe
   useEffect(() => {
     const s = sim.current
     s.enabled = enabled
+    s.attackMs = Number.isFinite(attackMs) && attackMs >= 0 ? attackMs : 20
+    s.onPaint = onPaint
     s.maxFps = Number.isFinite(maxFps) && maxFps > 0 ? maxFps : 0
     s.want = db
     s.wantPeak = peakDb
     sync()
-  }, [db, peakDb, enabled, maxFps, sync])
+  }, [db, peakDb, enabled, maxFps, attackMs, onPaint, sync])
 
   const vars = { '--sz-meter-count': count, '--sz-meter-scale': size, ...style } as React.CSSProperties
   return (
