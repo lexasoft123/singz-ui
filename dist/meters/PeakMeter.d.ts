@@ -5,6 +5,10 @@ export interface PeakMeterProps {
     peakDb?: number;
     /** 16 bricks / 9px instead of 40 bricks / 16px. */
     mini?: boolean;
+    /** Optional bitmap renderer for software compositing; omits decorative glow. */
+    renderMode?: 'dom' | 'canvas';
+    /** Maximum simulation/paint cadence; ballistics retain their elapsed-time speed. */
+    maxFps?: number;
     /** Tints the unlit bricks red. */
     clipped?: boolean;
     /** Changing it (a new song, a new input) clears the meter instantly. */

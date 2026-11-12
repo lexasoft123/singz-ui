@@ -7,13 +7,13 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { tokens } from '../tokens/tokens.js';
 import { useNativeTheme } from './theme.js';
 import { emptyPeakMeter, meterBrickFill, meterIndex, meterZone, peakMeterAtRest, stepPeakMeter } from '../meters/peak-meter-motion.js';
-function Brick({ index, count, width, height, motion, clipped, colors }) {
+function Brick({ index, count, size, height, motion, clipped, colors }) {
     const gap = 2;
-    const brickWidth = Math.max(0, (width - gap * (count - 1)) / count);
-    const x = index * (brickWidth + gap);
+    const brickWidth = useDerivedValue(() => Math.max(0, (size.value.width - gap * (count - 1)) / count));
+    const x = useDerivedValue(() => index * (brickWidth.value + gap));
     const color = colors.zones[meterZone(index, count)];
     const trailOpacity = useDerivedValue(() => motion.value.trail[index]);
-    const liveWidth = useDerivedValue(() => brickWidth * meterBrickFill(motion.value.liveDb, index, count));
+    const liveWidth = useDerivedValue(() => brickWidth.value * meterBrickFill(motion.value.liveDb, index, count));
     return _jsxs(Group, { children: [_jsx(RoundedRect, { x: x, y: 0, width: brickWidth, height: height, r: 1, color: clipped ? colors.danger : colors.faint, opacity: clipped ? 0.24 : 0.3 }), _jsx(RoundedRect, { x: x, y: 0, width: brickWidth, height: height, r: 1, color: color, opacity: trailOpacity }), _jsx(RoundedRect, { x: x, y: 0, width: liveWidth, height: height, r: 1, color: color })] });
 }
 /** A tiny Skia surface keeps per-frame ballistics off the JS tree. Needs the
@@ -26,7 +26,7 @@ export function PeakMeter({ db, peakDb = db, mini = false, clipped = false, iden
     }), [theme]);
     const count = mini ? 16 : 40;
     const height = mini ? 9 : 16;
-    const [width, setWidth] = useState(0);
+    const size = useSharedValue({ width: 0, height });
     const [foreground, setForeground] = useState(AppState.currentState === 'active');
     const reduced = useReducedMotion();
     const target = useSharedValue(-Infinity);
@@ -92,9 +92,9 @@ export function PeakMeter({ db, peakDb = db, mini = false, clipped = false, iden
         return () => frame.setActive(false);
     }, [db, peakDb, foreground, enabled, reduced, identity, count, frame, motion, target, peakTarget, epoch, pendingStop, lastTimestamp, accumulatedMs]);
     const gap = 2;
-    const brickWidth = Math.max(0, (width - gap * (count - 1)) / count);
-    const peakX = useDerivedValue(() => Math.max(0, meterIndex(motion.value.peakDb, count)) * (brickWidth + gap));
+    const brickWidth = useDerivedValue(() => Math.max(0, (size.value.width - gap * (count - 1)) / count));
+    const peakX = useDerivedValue(() => Math.max(0, meterIndex(motion.value.peakDb, count)) * (brickWidth.value + gap));
     const peakOpacity = useDerivedValue(() => motion.value.peakDb > -60 ? 1 : 0);
     const peakColor = useDerivedValue(() => colors.zones[meterZone(Math.max(0, meterIndex(motion.value.peakDb, count)), count)]);
-    return _jsx(View, { testID: testID ?? (mini ? 'peak-meter-mini' : 'peak-meter-full'), style: { width: '100%', height, borderRadius: 3, overflow: 'hidden', backgroundColor: colors.panelDeep }, onLayout: event => setWidth(Math.round(event.nativeEvent.layout.width)), children: width > 0 && _jsxs(Canvas, { style: { width, height }, pointerEvents: "none", accessible: false, children: [Array.from({ length: count }, (_, index) => _jsx(Brick, { index: index, count: count, width: width, height: height, motion: motion, clipped: clipped, colors: colors }, index)), _jsxs(Group, { opacity: peakOpacity, children: [_jsx(RoundedRect, { x: peakX, y: 0, width: brickWidth, height: height, r: 1, color: peakColor, children: _jsx(BlurMask, { blur: mini ? 2 : 4, style: "outer" }) }), _jsx(RoundedRect, { x: peakX, y: 0, width: brickWidth, height: height, r: 1, color: peakColor }), _jsx(RoundedRect, { x: peakX, y: 0, width: brickWidth, height: mini ? 1 : 2, r: 1, color: colors.text, opacity: 0.45 })] })] }) });
+    return _jsx(View, { testID: testID ?? (mini ? 'peak-meter-mini' : 'peak-meter-full'), style: { width: '100%', height, borderRadius: 3, overflow: 'hidden', backgroundColor: colors.panelDeep }, children: _jsxs(Canvas, { onSize: size, style: { width: '100%', height }, pointerEvents: "none", accessible: false, children: [Array.from({ length: count }, (_, index) => _jsx(Brick, { index: index, count: count, size: size, height: height, motion: motion, clipped: clipped, colors: colors }, index)), _jsxs(Group, { opacity: peakOpacity, children: [_jsx(RoundedRect, { x: peakX, y: 0, width: brickWidth, height: height, r: 1, color: peakColor, children: _jsx(BlurMask, { blur: mini ? 2 : 4, style: "outer" }) }), _jsx(RoundedRect, { x: peakX, y: 0, width: brickWidth, height: height, r: 1, color: peakColor }), _jsx(RoundedRect, { x: peakX, y: 0, width: brickWidth, height: mini ? 1 : 2, r: 1, color: colors.text, opacity: 0.45 })] })] }) });
 }
