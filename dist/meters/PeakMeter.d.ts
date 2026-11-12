@@ -9,6 +9,8 @@ export interface PeakMeterProps {
     renderMode?: 'dom' | 'canvas';
     /** Maximum simulation/paint cadence; ballistics retain their elapsed-time speed. */
     maxFps?: number;
+    /** Paint imperative input immediately when the cadence allows. */
+    paintOnReceive?: boolean;
     /** Rising-level time constant; zero shows a new level on the first paint. Default 20 ms. */
     attackMs?: number;
     /** Optional canvas diagnostic: first changed live pixels for an imperative reading. */
