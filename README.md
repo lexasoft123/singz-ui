@@ -282,6 +282,40 @@ Import `Icon` and `IconName` from `@singz/ui/icons` (React SVG) or `@singz/ui/na
 
 Available names: note, interval, chord, scale, piano, guitar, organ, speaker, calendar, flame, progress, replay, skip, pause, settings, play, pitch. Pass `size` and `color` to match the host theme.
 
+### PeakMeter
+
+One level meter for every SingZ surface: 40 bricks (16 with `mini`), green / yellow /
+red zones (`--sz-success`, `--sz-meter-warn`, `--sz-danger`), a live fill that moves
+inside a brick, a 1.1 s peak hold with afterglow trail, and the same ballistics
+everywhere (attack 20 ms, release 110 ms, 13 dB/s peak fall, -60 dB floor).
+
+```tsx
+import { PeakMeter, type PeakMeterHandle } from '@singz/ui'
+
+<PeakMeter db={-12} peakDb={-4} mini clipped={false} identity={song} enabled size={2.5} />
+```
+
+Props: `db` (dBFS, `-Infinity` = silence), `peakDb` (default `db`), `mini`, `clipped`
+(red unlit bricks), `identity` (changing it clears the meter), `enabled`, `size`
+(height multiplier for TV scale, sets `--sz-meter-scale`), `className`, `style`.
+
+Web: ballistics run in one `requestAnimationFrame` loop that writes `transform`/`opacity`
+directly to the DOM — no React state, no per-frame renders. A new `db` only updates refs. The
+loop stops when the meter is at rest, when the document is hidden or `enabled` is false;
+`prefers-reduced-motion` keeps the level and held peak but drops falling and trailing. For a
+host that already ticks at 20 Hz, a ref skips React entirely:
+`const meter = useRef<PeakMeterHandle>(null); meter.current?.push(db, peakDb)`.
+Styles are in `kit.css` (`.sz-meter*`).
+
+Native: `import { PeakMeter } from '@singz/ui/native/meter'` — a Skia + Reanimated
+renderer with the same props (plus `testID`). It is a separate entry so that only apps that
+use it need the optional peers `@shopify/react-native-skia`, `react-native-reanimated` and
+`react-native-worklets`.
+
+The pure ballistics (`stepPeakMeter`, `emptyPeakMeter`, `meterIndex`, `meterBrickFill`,
+`meterZone`, `peakMeterAtRest`; `'worklet'`-annotated) are exported from the root and from the
+React-free `@singz/ui/meters`. Run `npm test` for the ballistics and web-meter tests.
+
 ### Banner
 
 `Banner` is the shared centered status, error and feedback element. Use `tone="danger"`

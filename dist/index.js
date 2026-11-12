@@ -24,3 +24,5 @@ export { fitCanvas } from './hooks/useCanvas2D.js';
 export { WindowButtons, applyPlatformClasses } from './chrome/WindowButtons.js';
 export { STEM_META, CUSTOM_COLORS, STEM_ORDER } from './tokens/stems.js';
 export { Banner } from './primitives/Banner.js';
+export { PeakMeter } from './meters/PeakMeter.js';
+export { METER_FLOOR_DB, PEAK_HOLD_MS, emptyPeakMeter, meterBrickFill, meterIndex, meterZone, peakMeterAtRest, stepPeakMeter } from './meters/peak-meter-motion.js';

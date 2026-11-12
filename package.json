@@ -1,7 +1,7 @@
 {
   "name": "@singz/ui",
-  "version": "1.10.0",
-  "description": "The night-studio design language \u2014 tokens and React components shared across SingZ and friends.",
+  "version": "1.11.0",
+  "description": "The night-studio design language — tokens and React components shared across SingZ and friends.",
   "author": "lexasoft <lexasoft@gmail.com>",
   "license": "MIT",
   "type": "module",
@@ -47,6 +47,14 @@
     "./banner": {
       "types": "./dist/primitives/Banner.d.ts",
       "import": "./dist/primitives/Banner.js"
+    },
+    "./meters": {
+      "types": "./dist/meters/index.d.ts",
+      "import": "./dist/meters/index.js"
+    },
+    "./native/meter": {
+      "types": "./dist/native/meter.d.ts",
+      "import": "./dist/native/meter.js"
     }
   },
   "sideEffects": [
@@ -59,12 +67,16 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "themeable": "node scripts/check-themeable.mjs",
     "icons:native": "npm run build && node scripts/gen-native-icons.mjs && npm run build",
-    "test:header": "npm run build && node --experimental-vm-modules --test scripts/native-header.test.mjs"
+    "test:header": "npm run build && node --experimental-vm-modules --test scripts/native-header.test.mjs",
+    "test": "npm run build && node --experimental-vm-modules --test scripts/*.test.mjs"
   },
   "peerDependencies": {
     "react": "^18.3 || ^19",
     "react-dom": "^18.3 || ^19",
-    "react-native": ">=0.76"
+    "react-native": ">=0.76",
+    "@shopify/react-native-skia": ">=2",
+    "react-native-reanimated": ">=4",
+    "react-native-worklets": ">=0.5"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -75,15 +87,28 @@
     },
     "react-native": {
       "optional": true
+    },
+    "@shopify/react-native-skia": {
+      "optional": true
+    },
+    "react-native-reanimated": {
+      "optional": true
+    },
+    "react-native-worklets": {
+      "optional": true
     }
   },
   "devDependencies": {
+    "@shopify/react-native-skia": "^2.14.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "jsdom": "^31.0.0",
+    "playwright-core": "^1.62.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-native": "^0.86.0",
-    "typescript": "^5.8.3",
-    "playwright-core": "^1.62.0"
+    "react-native-reanimated": "^4.7.1",
+    "react-native-worklets": "^0.13.1",
+    "typescript": "^5.8.3"
   }
 }

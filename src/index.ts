@@ -47,3 +47,16 @@ export {
 export { STEM_META, CUSTOM_COLORS, STEM_ORDER, type StemMeta } from './tokens/stems.js'
 
 export { Banner, type BannerProps } from './primitives/Banner.js'
+
+export { PeakMeter, type PeakMeterProps, type PeakMeterHandle } from './meters/PeakMeter.js'
+export {
+  METER_FLOOR_DB,
+  PEAK_HOLD_MS,
+  emptyPeakMeter,
+  meterBrickFill,
+  meterIndex,
+  meterZone,
+  peakMeterAtRest,
+  stepPeakMeter,
+  type PeakMeterMotion
+} from './meters/peak-meter-motion.js'
