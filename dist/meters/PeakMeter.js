@@ -1,5 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
+import { paintMeterCanvas } from './paint-canvas.js';
 import { cx } from '../util/cx.js';
 import { emptyPeakMeter, meterBrickFill, meterIndex, meterZone, peakMeterAtRest, stepPeakMeter } from './peak-meter-motion.js';
 const MIN_STEP_MS = 4;
@@ -13,9 +14,11 @@ const Bricks = memo(function Bricks({ count }) {
  * is false, and prefers-reduced-motion keeps the held peak but drops the
  * falling and trailing motion.
  */
-export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini = false, clipped = false, identity, enabled = true, size = 1, className, style }, ref) {
+export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini = false, clipped = false, identity, enabled = true, size = 1, renderMode = 'dom', maxFps = 0, attackMs = 20, onPaint, className, style }, ref) {
     const count = mini ? 16 : 40;
     const root = useRef(null);
+    const canvas = useRef(null);
+    const bitmap = useRef({ width: 0, height: 0, ratio: 1, gap: 2, key: '', palette: null });
     const sim = useRef({
         count,
         motion: emptyPeakMeter(count),
@@ -24,6 +27,12 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         target: -Infinity,
         peakTarget: -Infinity,
         enabled,
+        maxFps,
+        attackMs,
+        onPaint,
+        readingId: undefined,
+        liveShape: '',
+        nextPaint: 0,
         reduced: false,
         hidden: false,
         raf: 0,
@@ -31,12 +40,27 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         acc: 0,
         painted: { trail: [], live: [], peakIndex: -2, peakZone: -1 }
     });
-    const paint = useCallback(() => {
+    const paint = useCallback((frameTime) => {
         const el = root.current;
         if (!el)
             return;
         const s = sim.current;
         const { motion, count: n, painted } = s;
+        const surface = canvas.current;
+        if (surface) {
+            const b = bitmap.current, ctx = surface.getContext('2d');
+            if (ctx && b.width > 0 && b.height > 0 && b.palette)
+                b.key = paintMeterCanvas(ctx, motion, n, b.width, b.height, b.gap, b.ratio, b.palette, surface.dataset.clipped === 'true', b.key, s.onPaint ? shape => {
+                    if (shape === s.liveShape)
+                        return;
+                    s.liveShape = shape;
+                    if (s.readingId !== undefined && s.enabled && !s.hidden) {
+                        s.onPaint?.(s.readingId, frameTime ?? performance.now());
+                        s.readingId = undefined;
+                    }
+                } : undefined);
+            return;
+        }
         const bricks = el.children;
         for (let i = 0; i < n; i++) {
             const brick = bricks[i];
@@ -84,13 +108,15 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
     const frame = useCallback((now) => {
         const s = sim.current;
         s.raf = 0;
-        const elapsed = s.last > 0 ? Math.min(100, Math.max(0, now - s.last)) : 0;
+        const elapsed = s.last > 0 ? Math.min(100, Math.max(0, now - s.last)) : (s.attackMs === 0 ? MIN_STEP_MS : 0);
         s.last = now;
         s.acc += elapsed;
-        if (s.acc >= MIN_STEP_MS) {
-            s.motion = stepPeakMeter(s.motion, s.target, s.acc, s.peakTarget);
+        if (s.acc >= MIN_STEP_MS && now + .25 >= s.nextPaint) {
+            s.motion = stepPeakMeter(s.motion, s.target, s.acc, s.peakTarget, s.attackMs);
             s.acc = 0;
-            paint();
+            const period = s.maxFps > 0 ? 1000 / s.maxFps : 0;
+            s.nextPaint = period ? Math.max(s.nextPaint + period, now) : now;
+            paint(now);
             if (peakMeterAtRest(s.motion))
                 return;
         }
@@ -109,7 +135,7 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         else if (s.reduced) {
             // Hold the peak, omit falling and trailing.
             stop();
-            const snapshot = stepPeakMeter(s.motion, s.target, 100, s.peakTarget);
+            const snapshot = stepPeakMeter(s.motion, s.target, 100, s.peakTarget, s.attackMs);
             snapshot.liveDb = Number.isFinite(s.target) ? Math.max(-60, Math.min(0, s.target)) : -60;
             snapshot.trail.fill(0);
             if (snapshot.liveDb <= -60)
@@ -123,16 +149,48 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
                 return;
             s.last = 0;
             s.acc = 0;
+            s.nextPaint = 0;
             s.raf = requestAnimationFrame(frame);
         }
     }, [frame, paint, reset, stop]);
-    const push = useCallback((nextDb, nextPeak = nextDb) => {
+    const push = useCallback((nextDb, nextPeak = nextDb, readingId) => {
         const s = sim.current;
+        s.readingId = readingId;
         s.want = nextDb;
         s.wantPeak = nextPeak;
         sync();
     }, [sync]);
     useImperativeHandle(ref, () => ({ push }), [push]);
+    // Size and palette are measured only on layout/theme changes, never per frame.
+    useEffect(() => {
+        const el = root.current, surface = canvas.current;
+        if (!el || !surface)
+            return;
+        const resize = () => {
+            const rect = el.getBoundingClientRect(), css = getComputedStyle(el);
+            const b = bitmap.current, dpr = window.devicePixelRatio || 1;
+            b.width = Math.max(0, Math.round(rect.width * dpr));
+            b.height = Math.max(0, Math.round(rect.height * dpr));
+            b.ratio = rect.width / (el.clientWidth || rect.width || 1) * dpr;
+            b.gap = (parseFloat(css.getPropertyValue('--sz-meter-gap')) || 2) * b.ratio;
+            b.palette = { zones: ['--sz-success', '--sz-meter-warn', '--sz-danger'].map(key => css.getPropertyValue(key).trim()),
+                faint: css.getPropertyValue('--sz-faint').trim(), danger: css.getPropertyValue('--sz-danger').trim(), text: css.getPropertyValue('--sz-text').trim() };
+            if (surface.width !== b.width)
+                surface.width = b.width;
+            if (surface.height !== b.height)
+                surface.height = b.height;
+            b.key = '';
+            paint();
+        };
+        const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null;
+        const theme = new MutationObserver(resize);
+        observer?.observe(el);
+        theme.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
+        window.addEventListener('resize', resize);
+        resize();
+        return () => { observer?.disconnect(); theme.disconnect(); window.removeEventListener('resize', resize); };
+    }, [renderMode, count, size, paint]);
+    useEffect(() => { bitmap.current.key = ''; paint(); }, [clipped, paint]);
     // Environment: document visibility and reduced motion.
     useEffect(() => {
         const s = sim.current;
@@ -157,15 +215,18 @@ export const PeakMeter = forwardRef(function PeakMeter({ db, peakDb = db, mini =
         s.painted = { trail: [], live: [], peakIndex: -2, peakZone: -1 };
         reset();
         sync();
-    }, [identity, count, reset, sync]);
+    }, [identity, count, renderMode, reset, sync]);
     // New values only touch refs; the rAF loop does the rest.
     useEffect(() => {
         const s = sim.current;
         s.enabled = enabled;
+        s.attackMs = Number.isFinite(attackMs) && attackMs >= 0 ? attackMs : 20;
+        s.onPaint = onPaint;
+        s.maxFps = Number.isFinite(maxFps) && maxFps > 0 ? maxFps : 0;
         s.want = db;
         s.wantPeak = peakDb;
         sync();
-    }, [db, peakDb, enabled, sync]);
+    }, [db, peakDb, enabled, maxFps, attackMs, onPaint, sync]);
     const vars = { '--sz-meter-count': count, '--sz-meter-scale': size, ...style };
-    return (_jsx("div", { ref: root, className: cx('sz-meter', mini && 'mini', clipped && 'clipped', className), style: vars, "aria-hidden": "true", children: _jsx(Bricks, { count: count }) }));
+    return (_jsx("div", { ref: root, className: cx('sz-meter', mini && 'mini', clipped && 'clipped', className), style: vars, "aria-hidden": "true", children: renderMode === 'canvas' ? _jsx("canvas", { ref: canvas, className: "sz-meter-canvas", "data-clipped": String(clipped), style: { width: '100%', height: '100%', display: 'block' } }) : _jsx(Bricks, { count: count }) }));
 });

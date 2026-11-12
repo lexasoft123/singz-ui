@@ -119,3 +119,79 @@ test('reduced motion shows the level and held peak without running a loop', asyn
   reduced = false
   root.unmount(); host.remove()
 })
+
+test('bitmap TV meters cap paint cadence and eliminate per-brick DOM mutations', async () => {
+  Object.assign(globalThis, { MutationObserver: window.MutationObserver, getComputedStyle: window.getComputedStyle.bind(window) })
+  const bounds = window.HTMLElement.prototype.getBoundingClientRect
+  window.HTMLElement.prototype.getBoundingClientRect = () => ({ width: 120, height: 16 })
+  const contexts = new Map()
+  const getContext = window.HTMLCanvasElement.prototype.getContext
+  window.HTMLCanvasElement.prototype.getContext = function () {
+    if (!contexts.has(this)) contexts.set(this, { paints: 0, clearRect() { this.paints++ }, save() {}, restore() {}, beginPath() {}, roundRect() {}, fill() {}, clip() {}, fillRect() {} })
+    return contexts.get(this)
+  }
+  const measure = async (renderMode, maxFps) => {
+    const refs = [createRef(), createRef()]
+    const mounted = await mount(h('div', null, ...refs.map((ref, i) => h(PeakMeter, { key: i, ref, db: -Infinity, mini: true, renderMode, maxFps }))))
+    let mutations = 0
+    const observer = new window.MutationObserver(records => { mutations += records.length })
+    observer.observe(mounted.host, { attributes: true, subtree: true })
+    const startPaints = [...contexts.values()].reduce((n, c) => n + c.paints, 0)
+    for (let i = 0; i < 1200; i++) {
+      if (i % 6 === 0) refs.forEach((ref, slot) => ref.current.push(-32 + Math.sin(i / 31 + slot) * 20))
+      await flush(1, 1000 / 120)
+    }
+    const paints = [...contexts.values()].reduce((n, c) => n + c.paints, 0) - startPaints
+    const nodes = mounted.host.querySelectorAll('.sz-meter *').length
+    observer.disconnect(); await act(async () => mounted.root.unmount()); mounted.host.remove()
+    return { mutations, paints, nodes }
+  }
+  const domResult = await measure('dom', 0)
+  const canvasResult = await measure('canvas', 30)
+  console.log('Mac 120 Hz / 10 s / two moving mini meters:', JSON.stringify({ dom: domResult, canvas30: canvasResult }))
+  assert.equal(domResult.nodes, 98)
+  assert.equal(canvasResult.nodes, 2)
+  assert.equal(canvasResult.mutations, 0, 'frames never mutate bitmap DOM attributes')
+  assert.ok(canvasResult.paints > 100 && canvasResult.paints <= 602, 'at most thirty dirty bitmap paints per second per meter')
+  assert.ok(domResult.mutations > 1000, 'the DOM control actually moves')
+  assert.equal(queue.size, 0, 'unmount cancels both loops')
+  window.HTMLCanvasElement.prototype.getContext = getContext
+  window.HTMLElement.prototype.getBoundingClientRect = bounds
+})
+
+test('canvas damage is gated on whole pixels and never adds a glow', async () => {
+  const { paintMeterCanvas } = await import('../dist/meters/paint-canvas.js')
+  const { emptyPeakMeter } = await import('../dist/meters/peak-meter-motion.js')
+  const ctx = { paints: 0, clearRect() { this.paints++ }, save() {}, restore() {}, beginPath() {}, roundRect() {}, fill() {}, clip() {}, fillRect() {},
+    set shadowBlur(value) { assert.equal(value, 0) } }
+  const palette = { zones: ['#5d9', '#fc5', '#f65'], faint: '#555', danger: '#f65', text: '#fff' }
+  const motion = { ...emptyPeakMeter(16), liveDb: -44, peakDb: -44 }
+  const key = paintMeterCanvas(ctx, motion, 16, 120, 16, 2, 1, palette, false, '')
+  const again = paintMeterCanvas(ctx, { ...motion, liveDb: -44.001 }, 16, 120, 16, 2, 1, palette, false, key)
+  assert.equal(again, key)
+  assert.equal(ctx.paints, 1)
+})
+
+
+test('instant canvas attack paints on the first frame and traces only changed live pixels', async () => {
+  Object.assign(globalThis, { MutationObserver: window.MutationObserver, getComputedStyle: window.getComputedStyle.bind(window) })
+  const bounds = window.HTMLElement.prototype.getBoundingClientRect
+  const getContext = window.HTMLCanvasElement.prototype.getContext
+  window.HTMLElement.prototype.getBoundingClientRect = () => ({ width: 120, height: 16 })
+  window.HTMLCanvasElement.prototype.getContext = () => ({ clearRect() {}, save() {}, restore() {}, beginPath() {}, roundRect() {}, fill() {}, clip() {}, fillRect() {} })
+  const ref = createRef(), paints = []
+  const ui = await mount(h(PeakMeter, { db: -Infinity, ref, renderMode: 'canvas', maxFps: 30, attackMs: 0, onPaint: (id, at) => paints.push({ id, at }) }))
+  await act(async () => ref.current.push(-12, -12, 7))
+  await flush(1, 1000 / 30)
+  assert.deepEqual(paints, [{ id: 7, at: clock }], 'new live pixels appear on the first available frame')
+  await act(async () => ref.current.push(-12, -12, 8))
+  await flush(4, 1000 / 30)
+  assert.equal(paints.length, 1, 'trail-only paints never attribute an unchanged reading')
+  await act(async () => ref.current.push(-6, -6, 9))
+  await flush(1, 1000 / 30)
+  assert.equal(paints.at(-1).id, 9)
+  await act(async () => ui.root.unmount()); ui.host.remove()
+  assert.equal(queue.size, 0)
+  window.HTMLCanvasElement.prototype.getContext = getContext
+  window.HTMLElement.prototype.getBoundingClientRect = bounds
+})

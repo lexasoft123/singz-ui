@@ -5,6 +5,14 @@ export interface PeakMeterProps {
     peakDb?: number;
     /** 16 bricks / 9px instead of 40 bricks / 16px. */
     mini?: boolean;
+    /** Optional bitmap renderer for software compositing; omits decorative glow. */
+    renderMode?: 'dom' | 'canvas';
+    /** Maximum simulation/paint cadence; ballistics retain their elapsed-time speed. */
+    maxFps?: number;
+    /** Rising-level time constant; zero shows a new level on the first paint. Default 20 ms. */
+    attackMs?: number;
+    /** Optional canvas diagnostic: first changed live pixels for an imperative reading. */
+    onPaint?: (readingId: number, frameTimeMs: number) => void;
     /** Tints the unlit bricks red. */
     clipped?: boolean;
     /** Changing it (a new song, a new input) clears the meter instantly. */
@@ -18,7 +26,7 @@ export interface PeakMeterProps {
 }
 /** Drive the meter without any React render at all. */
 export interface PeakMeterHandle {
-    push(db: number, peakDb?: number): void;
+    push(db: number, peakDb?: number, readingId?: number): void;
 }
 /**
  * The SingZ level meter. Ballistics (`stepPeakMeter`) run in one rAF loop that

@@ -34,12 +34,13 @@ export function emptyPeakMeter(count: number): PeakMeterMotion {
 }
 
 /** Pure ballistics shared by the UI-thread renderer and regression tests. */
-export function stepPeakMeter(previous: PeakMeterMotion, inputDb: number, elapsedMs: number, peakInputDb = inputDb): PeakMeterMotion {
+export function stepPeakMeter(previous: PeakMeterMotion, inputDb: number, elapsedMs: number, peakInputDb = inputDb, attackMs = 20): PeakMeterMotion {
   'worklet'
   const dt = Math.max(0, Math.min(100, elapsedMs))
   const target = Number.isFinite(inputDb) ? Math.max(METER_FLOOR_DB, Math.min(0, inputDb)) : METER_FLOOR_DB
-  const tau = target > previous.liveDb ? 20 : 110
-  let liveDb = target + (previous.liveDb - target) * Math.exp(-dt / tau)
+  const rising = target > previous.liveDb
+  const tau = rising ? Math.max(0, attackMs) : 110
+  let liveDb = rising && tau === 0 ? target : target + (previous.liveDb - target) * Math.exp(-dt / tau)
   if (Math.abs(liveDb - target) < 0.05) liveDb = target
   const peakTarget = Number.isFinite(peakInputDb) ? Math.max(METER_FLOOR_DB, Math.min(0, peakInputDb)) : METER_FLOOR_DB
   let peakDb = previous.peakDb

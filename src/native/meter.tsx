@@ -9,16 +9,16 @@ import { emptyPeakMeter, meterBrickFill, meterIndex, meterZone, peakMeterAtRest,
 
 interface MeterColors { zones: readonly [string, string, string]; faint: string; danger: string; text: string; panelDeep: string }
 
-function Brick({ index, count, width, height, motion, clipped, colors }: {
-  index: number; count: number; width: number; height: number
+function Brick({ index, count, size, height, motion, clipped, colors }: {
+  index: number; count: number; size: SharedValue<{ width: number; height: number }>; height: number
   motion: SharedValue<PeakMeterMotion>; clipped: boolean; colors: MeterColors
 }): React.JSX.Element {
   const gap = 2
-  const brickWidth = Math.max(0, (width - gap * (count - 1)) / count)
-  const x = index * (brickWidth + gap)
+  const brickWidth = useDerivedValue(() => Math.max(0, (size.value.width - gap * (count - 1)) / count))
+  const x = useDerivedValue(() => index * (brickWidth.value + gap))
   const color = colors.zones[meterZone(index, count)]
   const trailOpacity = useDerivedValue(() => motion.value.trail[index])
-  const liveWidth = useDerivedValue(() => brickWidth * meterBrickFill(motion.value.liveDb, index, count))
+  const liveWidth = useDerivedValue(() => brickWidth.value * meterBrickFill(motion.value.liveDb, index, count))
   return <Group>
     <RoundedRect x={x} y={0} width={brickWidth} height={height} r={1} color={clipped ? colors.danger : colors.faint} opacity={clipped ? 0.24 : 0.3} />
     <RoundedRect x={x} y={0} width={brickWidth} height={height} r={1} color={color} opacity={trailOpacity} />
@@ -49,7 +49,7 @@ export function PeakMeter({ db, peakDb = db, mini = false, clipped = false, iden
   }), [theme])
   const count = mini ? 16 : 40
   const height = mini ? 9 : 16
-  const [width, setWidth] = useState(0)
+  const size = useSharedValue({ width: 0, height })
   const [foreground, setForeground] = useState(AppState.currentState === 'active')
   const reduced = useReducedMotion()
   const target = useSharedValue(-Infinity)
@@ -112,15 +112,14 @@ export function PeakMeter({ db, peakDb = db, mini = false, clipped = false, iden
   }, [db, peakDb, foreground, enabled, reduced, identity, count, frame, motion, target, peakTarget, epoch, pendingStop, lastTimestamp, accumulatedMs])
 
   const gap = 2
-  const brickWidth = Math.max(0, (width - gap * (count - 1)) / count)
-  const peakX = useDerivedValue(() => Math.max(0, meterIndex(motion.value.peakDb, count)) * (brickWidth + gap))
+  const brickWidth = useDerivedValue(() => Math.max(0, (size.value.width - gap * (count - 1)) / count))
+  const peakX = useDerivedValue(() => Math.max(0, meterIndex(motion.value.peakDb, count)) * (brickWidth.value + gap))
   const peakOpacity = useDerivedValue(() => motion.value.peakDb > -60 ? 1 : 0)
   const peakColor = useDerivedValue(() => colors.zones[meterZone(Math.max(0, meterIndex(motion.value.peakDb, count)), count)])
   return <View testID={testID ?? (mini ? 'peak-meter-mini' : 'peak-meter-full')}
-    style={{ width: '100%', height, borderRadius: 3, overflow: 'hidden', backgroundColor: colors.panelDeep }}
-    onLayout={event => setWidth(Math.round(event.nativeEvent.layout.width))}>
-    {width > 0 && <Canvas style={{ width, height }} pointerEvents="none" accessible={false}>
-      {Array.from({ length: count }, (_, index) => <Brick key={index} index={index} count={count} width={width} height={height} motion={motion} clipped={clipped} colors={colors} />)}
+    style={{ width: '100%', height, borderRadius: 3, overflow: 'hidden', backgroundColor: colors.panelDeep }}>
+    <Canvas onSize={size} style={{ width: '100%', height }} pointerEvents="none" accessible={false}>
+      {Array.from({ length: count }, (_, index) => <Brick key={index} index={index} count={count} size={size} height={height} motion={motion} clipped={clipped} colors={colors} />)}
       <Group opacity={peakOpacity}>
         <RoundedRect x={peakX} y={0} width={brickWidth} height={height} r={1} color={peakColor}>
           <BlurMask blur={mini ? 2 : 4} style="outer" />
@@ -128,6 +127,6 @@ export function PeakMeter({ db, peakDb = db, mini = false, clipped = false, iden
         <RoundedRect x={peakX} y={0} width={brickWidth} height={height} r={1} color={peakColor} />
         <RoundedRect x={peakX} y={0} width={brickWidth} height={mini ? 1 : 2} r={1} color={colors.text} opacity={0.45} />
       </Group>
-    </Canvas>}
+    </Canvas>
   </View>
 }
