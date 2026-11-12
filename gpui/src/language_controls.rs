@@ -39,7 +39,7 @@ pub fn language_header_flag(tag: impl Into<SharedString>) -> Div {
                 }
             } else {
                 w.paint_quad(fill(b,rgb(0x26221c)).corner_radii(px(2.*scale)));
-                let code:SharedString=match tag.as_ref(){"tr"=>"TR","hi"=>"HI","ja"=>"JA","ko"=>"KO","th"=>"TH","id"=>"ID","vi"=>"VI","fil"=>"FIL","ms"=>"MS","zh-TW"=>"繁",_=>""}.into();
+                let code:SharedString=match tag.as_ref(){"es-419"=>"ES","pt-BR"=>"PT","tr"=>"TR","hi"=>"HI","ja"=>"JA","ko"=>"KO","th"=>"TH","id"=>"ID","vi"=>"VI","fil"=>"FIL","ms"=>"MS","zh-TW"=>"繁",_=>""}.into();
                 let font=Font::default().bold();let font_size=px(10.*scale);
                 let line=w.text_system().shape_line(code.clone(),font_size,&[TextRun {
                     len:code.len(),font,color:rgb(ACCENT).into(),background_color:None,underline:None,strikethrough:None,
