@@ -195,3 +195,29 @@ test('instant canvas attack paints on the first frame and traces only changed li
   window.HTMLCanvasElement.prototype.getContext = getContext
   window.HTMLElement.prototype.getBoundingClientRect = bounds
 })
+
+
+test('opt-in input paints on receive under the cap without a React render', async () => {
+  const originalNow = performance.now
+  Object.defineProperty(performance, 'now', { value: () => clock, configurable: true })
+  const ref = createRef()
+  let commits = 0
+  const { host, root, meter } = await mount(h(Profiler, { id: 'receive', onRender: () => commits++ },
+    h(PeakMeter, { db: -Infinity, attackMs: 0, maxFps: 30, paintOnReceive: true, ref })))
+  try {
+    const before = commits
+    clock += 40
+    await act(async () => ref.current.push(-20))
+    assert.equal(meter.children[20].lastElementChild.style.transform, 'scaleX(1)', 'draws before any rAF callback')
+    const first = meter.children[37].lastElementChild.style.transform
+    clock += 2
+    await act(async () => ref.current.push(-1))
+    assert.equal(meter.children[37].lastElementChild.style.transform, first, 'keeps thirty fps bound')
+    await flush(1, 32)
+    assert.equal(meter.children[37].lastElementChild.style.transform, 'scaleX(1)')
+    assert.equal(commits, before)
+  } finally {
+    root.unmount(); host.remove()
+    Object.defineProperty(performance, 'now', { value: originalNow, configurable: true })
+  }
+})
